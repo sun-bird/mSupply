@@ -14,6 +14,7 @@ import {
   useTheme,
 } from '@mui/material';
 import { useState } from 'react';
+import msupplyLogo from '../../assets/msupply-logo.svg';
 import type { NavItem } from './nav.types';
 
 const SIDEBAR_WIDTH = 200;
@@ -22,22 +23,11 @@ const SIDEBAR_COLLAPSED_WIDTH = 64;
 function MSupplyLogo() {
   return (
     <Box
-      sx={{
-        width: 40,
-        height: 40,
-        bgcolor: 'primary.main',
-        borderRadius: '8px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: 'white',
-        fontWeight: 700,
-        fontSize: 18,
-        flexShrink: 0,
-      }}
-    >
-      M
-    </Box>
+      component="img"
+      src={msupplyLogo}
+      alt="mSupply"
+      sx={{ width: 40, height: 40, objectFit: 'contain', flexShrink: 0 }}
+    />
   );
 }
 
