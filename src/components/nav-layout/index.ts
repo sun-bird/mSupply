@@ -7,6 +7,7 @@ export type {
   NavItem,
   NavLayoutProps,
   PrimaryAction,
+  SubNavItem,
   ViewFooterProps,
   ViewHeaderProps,
 } from './nav.types';

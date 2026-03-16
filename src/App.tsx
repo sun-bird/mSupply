@@ -1,14 +1,18 @@
-import AcUnitIcon from '@mui/icons-material/AcUnit';
+import {
+  DashboardSpeed01Icon,
+  DeliveryTruck02Icon,
+  FirstAidKitIcon,
+  PackageOpenIcon,
+  PackageProcessIcon,
+  PieChartIcon,
+  ProfileIcon,
+  Settings04Icon,
+  ThermometerColdIcon,
+} from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
-import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
-import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
-import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
-import MedicationOutlinedIcon from '@mui/icons-material/MedicationOutlined';
 import PrintOutlinedIcon from '@mui/icons-material/PrintOutlined';
-import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import { NavLayout } from './components/nav-layout';
 import type { NavItem } from './components/nav-layout';
@@ -32,15 +36,89 @@ const theme = createTheme({
 });
 
 const navItems: NavItem[] = [
-  { label: 'Dashboard', icon: <DashboardOutlinedIcon />, href: '/dashboard' },
-  { label: 'Replenishment', icon: <Inventory2OutlinedIcon />, href: '/replenishment' },
-  { label: 'Inventory', icon: <Inventory2OutlinedIcon />, href: '/inventory' },
-  { label: 'Distribution', icon: <LocalShippingOutlinedIcon />, href: '/distribution' },
-  { label: 'Dispensary', icon: <MedicationOutlinedIcon />, href: '/dispensary' },
-  { label: 'Cold Chain', icon: <AcUnitIcon />, href: '/cold-chain' },
-  { label: 'Programs', icon: <GroupsOutlinedIcon />, href: '/programs' },
-  { label: 'Reports', icon: <AssessmentOutlinedIcon />, href: '/reports' },
-  { label: 'Settings', icon: <SettingsOutlinedIcon />, href: '/settings' },
+  {
+    label: 'Dashboard',
+    icon: <HugeiconsIcon icon={DashboardSpeed01Icon} size={22} />,
+    href: '/dashboard',
+  },
+  {
+    label: 'Replenishment',
+    icon: <HugeiconsIcon icon={PackageOpenIcon} size={22} />,
+    href: '/replenishment',
+    children: [
+      { label: 'Purchase Orders', href: '/replenishment/purchase-orders' },
+      { label: 'Goods Received', href: '/replenishment/goods-received' },
+      { label: 'Internal Orders', href: '/replenishment/internal-orders' },
+      { label: 'Inbound Shipments', href: '/replenishment/inbound-shipments' },
+      { label: 'Supplier Returns', href: '/replenishment/supplier-returns' },
+      { label: 'R&R Forms', href: '/replenishment/rnr-forms' },
+      { label: 'Suppliers', href: '/replenishment/suppliers' },
+    ],
+  },
+  {
+    label: 'Inventory',
+    icon: <HugeiconsIcon icon={PackageProcessIcon} size={22} />,
+    href: '/inventory',
+    children: [
+      { label: 'Stock', href: '/inventory/stock' },
+      { label: 'Locations', href: '/inventory/locations' },
+      { label: 'Stocktake', href: '/inventory/stocktake' },
+    ],
+  },
+  {
+    label: 'Distribution',
+    icon: <HugeiconsIcon icon={DeliveryTruck02Icon} size={22} />,
+    href: '/distribution',
+    children: [
+      { label: 'Requisitions', href: '/distribution/requisitions' },
+      { label: 'Outbound Shipments', href: '/distribution/outbound-shipments' },
+      { label: 'Customer Returns', href: '/distribution/customer-returns' },
+      { label: 'Customers', href: '/distribution/customers' },
+    ],
+  },
+  {
+    label: 'Dispensary',
+    icon: <HugeiconsIcon icon={FirstAidKitIcon} size={22} />,
+    href: '/dispensary',
+    children: [
+      { label: 'Patients', href: '/dispensary/patients' },
+      { label: 'Prescriptions', href: '/dispensary/prescriptions' },
+      { label: 'Encounters', href: '/dispensary/encounters' },
+      { label: 'Clinicians', href: '/dispensary/clinicians' },
+    ],
+  },
+  {
+    label: 'Cold Chain',
+    icon: <HugeiconsIcon icon={ThermometerColdIcon} size={22} />,
+    href: '/cold-chain',
+    children: [
+      { label: 'Equipment', href: '/cold-chain/equipment' },
+      { label: 'Monitoring', href: '/cold-chain/monitoring' },
+      { label: 'Sensors', href: '/cold-chain/sensors' },
+    ],
+  },
+  {
+    label: 'Programs',
+    icon: <HugeiconsIcon icon={ProfileIcon} size={22} />,
+    href: '/programs',
+    children: [
+      { label: 'Immunizations', href: '/programs/immunizations' },
+    ],
+  },
+  {
+    label: 'Reports',
+    icon: <HugeiconsIcon icon={PieChartIcon} size={22} />,
+    href: '/reports',
+  },
+  {
+    label: 'Settings',
+    icon: <HugeiconsIcon icon={Settings04Icon} size={22} />,
+    href: '/settings',
+    children: [
+      { label: 'Preferences', href: '/settings/preferences' },
+      { label: 'Sync', href: '/settings/sync' },
+    ],
+  },
 ];
 
 export default function App() {
@@ -49,7 +127,7 @@ export default function App() {
       <CssBaseline />
       <NavLayout
         navItems={navItems}
-        activePath="/dashboard"
+        activePath="/inventory/locations"
         headerProps={{
           title: 'View Title',
           onBack: () => console.log('back'),

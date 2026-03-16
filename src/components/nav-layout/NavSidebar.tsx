@@ -1,5 +1,8 @@
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
   Box,
+  Collapse,
   Drawer,
   List,
   ListItem,
@@ -10,33 +13,31 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
+import { useState } from 'react';
 import type { NavItem } from './nav.types';
 
 const SIDEBAR_WIDTH = 200;
 const SIDEBAR_COLLAPSED_WIDTH = 64;
 
-// mSupply brand logo mark as inline SVG
 function MSupplyLogo() {
   return (
     <Box
-      component="img"
-      src="https://msupply.foundation/wp-content/uploads/2021/07/msupply-logo.png"
-      alt="mSupply"
-      onError={(e) => {
-        // Fallback to text if image fails
-        const target = e.currentTarget as HTMLImageElement;
-        target.style.display = 'none';
-        const parent = target.parentElement;
-        if (parent) {
-          const fallback = document.createElement('div');
-          fallback.style.cssText =
-            'width:40px;height:40px;background:#E95C30;border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:18px;';
-          fallback.textContent = 'M';
-          parent.appendChild(fallback);
-        }
+      sx={{
+        width: 40,
+        height: 40,
+        bgcolor: 'primary.main',
+        borderRadius: '8px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'white',
+        fontWeight: 700,
+        fontSize: 18,
+        flexShrink: 0,
       }}
-      sx={{ width: 40, height: 40, objectFit: 'contain' }}
-    />
+    >
+      M
+    </Box>
   );
 }
 
@@ -56,6 +57,19 @@ function SidebarContent({
   activePath?: string;
   collapsed: boolean;
 }) {
+  // Track which parent items are open
+  const initialOpen = navItems.reduce<Record<string, boolean>>((acc, item) => {
+    if (item.children?.some((c) => c.href === activePath)) {
+      acc[item.href] = true;
+    }
+    return acc;
+  }, {});
+
+  const [openMap, setOpenMap] = useState<Record<string, boolean>>(initialOpen);
+
+  const toggle = (href: string) =>
+    setOpenMap((prev) => ({ ...prev, [href]: !prev[href] }));
+
   return (
     <Box
       sx={{
@@ -71,28 +85,24 @@ function SidebarContent({
       }}
     >
       {/* Logo */}
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          px: 2.5,
-          py: 2.5,
-          minHeight: 64,
-        }}
-      >
+      <Box sx={{ display: 'flex', alignItems: 'center', px: 2.5, py: 2.5, minHeight: 64 }}>
         <MSupplyLogo />
       </Box>
 
       {/* Nav items */}
-      <List disablePadding sx={{ flex: 1, pt: 1 }}>
+      <List disablePadding sx={{ flex: 1, pt: 1, overflowY: 'auto', overflowX: 'hidden' }}>
         {navItems.map((item) => {
-          const isActive = activePath === item.href;
+          const hasChildren = !!item.children?.length;
+          const isParentActive = activePath === item.href;
+          const isChildActive = item.children?.some((c) => c.href === activePath) ?? false;
+          const isOpen = openMap[item.href] ?? false;
 
-          const listItemButton = (
+          const parentButton = (
             <ListItemButton
-              component="a"
-              href={item.href}
-              selected={isActive}
+              onClick={hasChildren ? () => toggle(item.href) : undefined}
+              component={hasChildren ? 'div' : 'a'}
+              {...(!hasChildren ? { href: item.href } : {})}
+              selected={isParentActive || (!isOpen && isChildActive)}
               sx={{
                 mx: 1,
                 borderRadius: '8px',
@@ -100,6 +110,7 @@ function SidebarContent({
                 px: 1.5,
                 mb: 0.25,
                 minHeight: 40,
+                cursor: 'pointer',
                 '&.Mui-selected': {
                   bgcolor: 'rgba(233,92,48,0.08)',
                   '&:hover': { bgcolor: 'rgba(233,92,48,0.12)' },
@@ -110,34 +121,88 @@ function SidebarContent({
               <ListItemIcon
                 sx={{
                   minWidth: collapsed ? 'unset' : 36,
-                  color: isActive ? 'primary.main' : 'text.secondary',
+                  color: isParentActive || isChildActive ? 'primary.main' : 'text.secondary',
                   '& svg': { fontSize: 22 },
                 }}
               >
                 {item.icon}
               </ListItemIcon>
               {!collapsed && (
-                <ListItemText
-                  primary={item.label}
-                  primaryTypographyProps={{
-                    fontSize: 14,
-                    fontWeight: isActive ? 600 : 400,
-                    color: isActive ? 'primary.main' : 'text.primary',
-                    noWrap: true,
-                  }}
-                />
+                <>
+                  <ListItemText
+                    primary={item.label}
+                    primaryTypographyProps={{
+                      fontSize: 16,
+                      fontWeight: isParentActive || isChildActive ? 600 : 400,
+                      color: isParentActive || isChildActive ? 'primary.main' : 'text.primary',
+                      noWrap: true,
+                      letterSpacing: '0.15px',
+                    }}
+                  />
+                  {hasChildren && (
+                    <Box sx={{ color: 'text.secondary', display: 'flex', ml: 0.5 }}>
+                      {isOpen ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+                    </Box>
+                  )}
+                </>
               )}
             </ListItemButton>
           );
 
           return (
-            <ListItem key={item.href} disablePadding>
-              {collapsed ? (
+            <ListItem key={item.href} disablePadding sx={{ flexDirection: 'column', alignItems: 'stretch' }}>
+              {collapsed && hasChildren ? (
                 <Tooltip title={item.label} placement="right">
-                  {listItemButton}
+                  {parentButton}
+                </Tooltip>
+              ) : collapsed ? (
+                <Tooltip title={item.label} placement="right">
+                  {parentButton}
                 </Tooltip>
               ) : (
-                listItemButton
+                parentButton
+              )}
+
+              {/* Sub-items */}
+              {hasChildren && !collapsed && (
+                <Collapse in={isOpen} timeout="auto" unmountOnExit>
+                  <List disablePadding sx={{ py: 1 }}>
+                    {item.children!.map((child) => {
+                      const isActive = activePath === child.href;
+                      return (
+                        <ListItemButton
+                          key={child.href}
+                          component="a"
+                          href={child.href}
+                          selected={isActive}
+                          sx={{
+                            pl: '52px', // 36px icon slot + 16px base px
+                            pr: 2,
+                            py: '4px',
+                            minHeight: 32,
+                            '&.Mui-selected': {
+                              bgcolor: 'rgba(233,92,48,0.04)',
+                              '&:hover': { bgcolor: 'rgba(233,92,48,0.08)' },
+                            },
+                            '&:hover': { bgcolor: 'action.hover' },
+                          }}
+                        >
+                          <ListItemText
+                            primary={child.label}
+                            primaryTypographyProps={{
+                              fontSize: 14,
+                              fontWeight: isActive ? 600 : 400,
+                              color: isActive ? 'primary.main' : 'text.primary',
+                              noWrap: true,
+                              letterSpacing: '0.17px',
+                              lineHeight: '24px',
+                            }}
+                          />
+                        </ListItemButton>
+                      );
+                    })}
+                  </List>
+                </Collapse>
               )}
             </ListItem>
           );
@@ -165,17 +230,10 @@ export default function NavSidebar({
         onClose={onMobileClose}
         ModalProps={{ keepMounted: true }}
         sx={{
-          '& .MuiDrawer-paper': {
-            width: SIDEBAR_WIDTH,
-            boxSizing: 'border-box',
-          },
+          '& .MuiDrawer-paper': { width: SIDEBAR_WIDTH, boxSizing: 'border-box' },
         }}
       >
-        <SidebarContent
-          navItems={navItems}
-          activePath={activePath}
-          collapsed={false}
-        />
+        <SidebarContent navItems={navItems} activePath={activePath} collapsed={false} />
       </Drawer>
     );
   }
@@ -195,11 +253,7 @@ export default function NavSidebar({
         },
       }}
     >
-      <SidebarContent
-        navItems={navItems}
-        activePath={activePath}
-        collapsed={isTablet}
-      />
+      <SidebarContent navItems={navItems} activePath={activePath} collapsed={isTablet} />
     </Drawer>
   );
 }
