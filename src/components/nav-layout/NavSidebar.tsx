@@ -26,7 +26,7 @@ function MSupplyLogo() {
       component="img"
       src={msupplyLogo}
       alt="mSupply"
-      sx={{ width: 40, height: 40, objectFit: 'contain', flexShrink: 0 }}
+      sx={{ height: 40, width: 'auto', flexShrink: 0 }}
     />
   );
 }
