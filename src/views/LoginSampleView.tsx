@@ -12,7 +12,6 @@ interface LoginSampleViewProps {
   navItems: NavItem[];
   onNavigate: (path: string) => void;
   primaryColor: string;
-  secondaryColor: string;
   logoUrl: string | null;
 }
 
@@ -20,7 +19,6 @@ export default function LoginSampleView({
   navItems,
   onNavigate,
   primaryColor,
-  secondaryColor,
   logoUrl,
 }: LoginSampleViewProps) {
   const { t } = useTranslation();

@@ -290,7 +290,6 @@ export default function App() {
         navItems={wiredNavItems}
         onNavigate={setActivePath}
         primaryColor={primaryColor}
-        secondaryColor={activeTheme?.secondaryColor ?? '#FF8800'}
         logoUrl={logoUrl}
       />
     );
