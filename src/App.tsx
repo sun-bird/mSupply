@@ -26,6 +26,7 @@ import LoginSampleView from './views/LoginSampleView';
 import PreferencesView from './views/PreferencesView';
 import type { ColorMode } from './views/PreferencesView';
 import StockView from './views/StockView';
+import TendersView from './views/TendersView';
 import ThemeEditorView from './views/ThemeEditorView';
 import type { SavedTheme } from './views/ThemeEditorView';
 
@@ -159,6 +160,7 @@ function buildNavItems(t: (key: string) => string): NavItem[] {
         { label: t('nav.supplierReturns'), href: '/replenishment/supplier-returns' },
         { label: t('nav.rnrForms'), href: '/replenishment/rnr-forms' },
         { label: t('nav.suppliers'), href: '/replenishment/suppliers' },
+        { label: t('nav.tenders'), href: '/replenishment/tenders' },
       ],
     },
     {
@@ -326,6 +328,8 @@ export default function App() {
     content = <StockView navItems={wiredNavItems} onNavigate={setActivePath} />;
   } else if (activePath === '/replenishment/goods-received') {
     content = <GoodsReceivedView navItems={wiredNavItems} onNavigate={setActivePath} />;
+  } else if (activePath === '/replenishment/tenders') {
+    content = <TendersView navItems={wiredNavItems} onNavigate={setActivePath} />;
   } else if (activePath === '/settings/themes') {
     content = (
       <ThemeEditorView

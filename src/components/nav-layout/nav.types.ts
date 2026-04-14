@@ -30,6 +30,7 @@ export interface ViewHeaderProps {
   title: string;
   onBack?: () => void;
   primaryAction?: PrimaryAction;
+  secondaryActions?: PrimaryAction[];
   comboActions?: ComboAction[];
 }
 

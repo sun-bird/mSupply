@@ -22,6 +22,7 @@ export default function ViewHeader({
   title,
   onBack,
   primaryAction,
+  secondaryActions = [],
   comboActions = [],
   onMenuToggle,
 }: ViewHeaderInternalProps) {
@@ -121,6 +122,40 @@ export default function ViewHeader({
             {primaryAction.label}
           </Button>
         )}
+
+        {/* Secondary action buttons */}
+        {secondaryActions.map((action, i) => (
+          <Button
+            key={i}
+            onClick={action.onClick}
+            variant="outlined"
+            size="small"
+            startIcon={action.icon}
+            sx={{
+              borderRadius: 24,
+              textTransform: 'none',
+              fontFamily: 'Inter, sans-serif',
+              fontWeight: 500,
+              fontSize: 14,
+              color: 'text.primary',
+              borderColor: 'transparent',
+              bgcolor: 'background.paper',
+              boxShadow:
+                '0px 0px 2px rgba(40,41,61,0.04), 0px 4px 8px rgba(96,97,112,0.16)',
+              px: 2.5,
+              height: 40,
+              whiteSpace: 'nowrap',
+              '&:hover': {
+                borderColor: 'transparent',
+                bgcolor: 'action.hover',
+                boxShadow:
+                  '0px 0px 2px rgba(40,41,61,0.08), 0px 4px 12px rgba(96,97,112,0.24)',
+              },
+            }}
+          >
+            {action.label}
+          </Button>
+        ))}
 
         {/* Combo action buttons */}
         {comboActions.length > 0 && (

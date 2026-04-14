@@ -34,7 +34,31 @@
     "preferences": "Preferences",
     "sync": "Sync",
     "themes": "Themes",
-    "loginSample": "Login Sample"
+    "loginSample": "Login Sample",
+    "tenders": "Tenders"
+  },
+  "tenders": {
+    "title": "Tenders",
+    "newTender": "New Tender",
+    "tenderSettings": "Tender Settings",
+    "activeTenders": "Active Tenders",
+    "planning": "Planning",
+    "advertised": "Advertised",
+    "evaluation": "Evaluation",
+    "award": "Award",
+    "finalised": "Finalised",
+    "showAll": "Show All",
+    "search": "Search...",
+    "serial": "Serial",
+    "status": "Status",
+    "method": "Method",
+    "type": "Type",
+    "description": "Description",
+    "reference": "Reference",
+    "created": "Created",
+    "deadline": "Deadline",
+    "expires": "Expires",
+    "noTendersFound": "No tenders found."
   },
   "themeEditor": {
     "title": "Theme Editor",
