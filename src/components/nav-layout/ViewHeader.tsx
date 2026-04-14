@@ -103,7 +103,7 @@ export default function ViewHeader({
               fontFamily: 'Inter, sans-serif',
               fontWeight: 500,
               fontSize: 14,
-              color: 'primary.main',
+              color: 'text.primary',
               borderColor: 'transparent',
               bgcolor: 'background.paper',
               boxShadow:
