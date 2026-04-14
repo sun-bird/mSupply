@@ -11,6 +11,7 @@ export default function NavLayout({
   activePath,
   headerProps,
   footerProps,
+  logoUrl,
 }: NavLayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -22,6 +23,7 @@ export default function NavLayout({
         activePath={activePath}
         mobileOpen={mobileOpen}
         onMobileClose={() => setMobileOpen(false)}
+        logoUrl={logoUrl}
       />
 
       {/* Right: header + content + footer */}
@@ -46,7 +48,6 @@ export default function NavLayout({
           sx={{
             flex: 1,
             overflow: 'auto',
-            bgcolor: 'grey.50',
             p: { xs: 2, sm: 3 },
           }}
         >

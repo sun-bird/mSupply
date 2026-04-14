@@ -3,13 +3,14 @@ import type { ReactNode } from 'react';
 export interface SubNavItem {
   label: string;
   href: string;
+  onClick?: () => void;
 }
 
 export interface NavItem {
   label: string;
-  /** MUI SvgIcon component */
   icon: ReactNode;
   href: string;
+  onClick?: () => void;
   children?: SubNavItem[];
 }
 
@@ -45,4 +46,5 @@ export interface NavLayoutProps {
   activePath?: string;
   headerProps?: ViewHeaderProps;
   footerProps?: ViewFooterProps;
+  logoUrl?: string;
 }

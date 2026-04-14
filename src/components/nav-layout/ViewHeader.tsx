@@ -1,6 +1,5 @@
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import MenuIcon from '@mui/icons-material/Menu';
+import { ArrowLeft01Icon, HelpCircleIcon, Menu01Icon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
 import {
   AppBar,
   Box,
@@ -33,10 +32,9 @@ export default function ViewHeader({
       position="static"
       elevation={0}
       sx={{
-        bgcolor: 'background.paper',
+        bgcolor: 'transparent',
         color: 'text.primary',
-        boxShadow:
-          '0px 0px 2px rgba(40,41,61,0.04), 0px 4px 8px rgba(96,97,112,0.16)',
+        boxShadow: 'none',
         zIndex: 1,
       }}
     >
@@ -54,9 +52,9 @@ export default function ViewHeader({
             onClick={onMenuToggle}
             aria-label="open navigation"
             size="small"
-            sx={{ mr: 0.5 }}
+            sx={{ mr: 0.5, color: 'primary.main' }}
           >
-            <MenuIcon />
+            <HugeiconsIcon icon={Menu01Icon} size={22} />
           </IconButton>
         )}
 
@@ -67,9 +65,9 @@ export default function ViewHeader({
               onClick={onBack}
               size="small"
               aria-label="go back"
-              sx={{ color: 'text.secondary' }}
+              sx={{ color: 'primary.main' }}
             >
-              <ArrowBackIcon fontSize="small" />
+              <HugeiconsIcon icon={ArrowLeft01Icon} size={20} />
             </IconButton>
           )}
           <Typography
@@ -102,7 +100,7 @@ export default function ViewHeader({
               fontFamily: 'Inter, sans-serif',
               fontWeight: 500,
               fontSize: 14,
-              color: 'text.primary',
+              color: 'primary.main',
               borderColor: 'transparent',
               bgcolor: 'background.paper',
               boxShadow:
@@ -112,7 +110,7 @@ export default function ViewHeader({
               whiteSpace: 'nowrap',
               '&:hover': {
                 borderColor: 'transparent',
-                bgcolor: 'grey.50',
+                bgcolor: 'rgba(233,92,48,0.05)',
                 boxShadow:
                   '0px 0px 2px rgba(40,41,61,0.08), 0px 4px 12px rgba(96,97,112,0.24)',
               },
@@ -143,7 +141,11 @@ export default function ViewHeader({
                   onClick={action.onClick}
                   size="small"
                   aria-label={action.label}
-                  sx={{ color: 'text.secondary', p: 0.75 }}
+                  sx={{
+                    color: 'primary.main',
+                    p: 0.75,
+                    '&:hover': { bgcolor: 'rgba(233,92,48,0.05)' },
+                  }}
                 >
                   {action.icon}
                 </IconButton>
@@ -155,8 +157,11 @@ export default function ViewHeader({
         {/* Default help icon if no combo actions provided */}
         {comboActions.length === 0 && (
           <Tooltip title="Help">
-            <IconButton size="small" sx={{ color: 'text.secondary' }}>
-              <HelpOutlineIcon fontSize="small" />
+            <IconButton
+              size="small"
+              sx={{ color: 'primary.main', '&:hover': { bgcolor: 'rgba(233,92,48,0.05)' } }}
+            >
+              <HugeiconsIcon icon={HelpCircleIcon} size={20} />
             </IconButton>
           </Tooltip>
         )}
