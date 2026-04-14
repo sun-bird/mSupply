@@ -253,8 +253,6 @@ export default function App() {
   }, [activeThemeId]);
 
   // Route content
-  const activeTheme = savedThemes.find((s) => s.id === activeThemeId);
-
   let content: React.ReactNode;
   if (activePath === '/settings/preferences') {
     content = (
