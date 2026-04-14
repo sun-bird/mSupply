@@ -34,12 +34,24 @@ const STORAGE_THEMES = 'msupply-themes';
 const STORAGE_ACTIVE = 'msupply-active-theme-id';
 const STORAGE_COLOR_MODE = 'msupply-color-mode';
 
+const DEFAULT_THEMES: SavedTheme[] = [
+  { id: 'default-msupply', themeName: 'mSupply', primaryColor: '#E95C30', secondaryColor: '#FF8800', logoDataUrl: null },
+  { id: 'default-tonga', themeName: 'Tonga', primaryColor: '#C10000', secondaryColor: '#FF8800', logoDataUrl: null },
+  { id: 'default-wfp', themeName: 'WFP', primaryColor: '#5A92E5', secondaryColor: '#FF8800', logoDataUrl: null },
+  { id: 'default-salud', themeName: 'Salud', primaryColor: '#32B1A5', secondaryColor: '#FF8800', logoDataUrl: null },
+  { id: 'default-fiji', themeName: 'Fiji', primaryColor: '#005D62', secondaryColor: '#FF8800', logoDataUrl: null },
+  { id: 'default-nigeria', themeName: 'Nigeria', primaryColor: '#008751', secondaryColor: '#FF8800', logoDataUrl: null },
+];
+
 function loadSavedThemes(): SavedTheme[] {
   try {
     const raw = localStorage.getItem(STORAGE_THEMES);
-    return raw ? (JSON.parse(raw) as SavedTheme[]) : [];
+    if (raw) return JSON.parse(raw) as SavedTheme[];
+    // Seed defaults on first visit
+    persistThemes(DEFAULT_THEMES);
+    return DEFAULT_THEMES;
   } catch {
-    return [];
+    return DEFAULT_THEMES;
   }
 }
 
