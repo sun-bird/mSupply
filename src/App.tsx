@@ -12,19 +12,22 @@ import {
   ThermometerColdIcon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
+import { CssBaseline, ThemeProvider, createTheme, useMediaQuery } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { NavLayout } from './components/nav-layout';
 import type { NavItem } from './components/nav-layout';
 import GoodsReceivedView from './views/GoodsReceivedView';
-import StockView from './views/StockView';
 import LoginSampleView from './views/LoginSampleView';
+import PreferencesView from './views/PreferencesView';
+import type { ColorMode } from './views/PreferencesView';
+import StockView from './views/StockView';
 import ThemeEditorView from './views/ThemeEditorView';
 import type { SavedTheme } from './views/ThemeEditorView';
 
 const DEFAULT_PRIMARY = '#E95C30';
 const STORAGE_THEMES = 'msupply-themes';
 const STORAGE_ACTIVE = 'msupply-active-theme-id';
+const STORAGE_COLOR_MODE = 'msupply-color-mode';
 
 function loadSavedThemes(): SavedTheme[] {
   try {
@@ -48,12 +51,28 @@ function persistActiveThemeId(id: string | null) {
   else localStorage.removeItem(STORAGE_ACTIVE);
 }
 
-function buildTheme(primaryColor: string) {
+function loadColorMode(): ColorMode {
+  const stored = localStorage.getItem(STORAGE_COLOR_MODE);
+  if (stored === 'light' || stored === 'dark' || stored === 'system') return stored;
+  return 'system';
+}
+
+function persistColorMode(mode: ColorMode) {
+  localStorage.setItem(STORAGE_COLOR_MODE, mode);
+}
+
+function buildTheme(primaryColor: string, mode: 'light' | 'dark' = 'light') {
+  const isDark = mode === 'dark';
   return createTheme({
     palette: {
+      mode,
       primary: { main: primaryColor },
-      background: { default: '#F5F5F5', paper: '#FFFFFF' },
-      text: { primary: '#1C1C28', secondary: '#555770' },
+      background: isDark
+        ? { default: '#121212', paper: '#1E1E1E' }
+        : { default: '#F5F5F5', paper: '#FFFFFF' },
+      text: isDark
+        ? { primary: '#FAFAFA', secondary: '#B0B0B0' }
+        : { primary: '#1C1C28', secondary: '#555770' },
     },
     typography: {
       fontFamily: 'Inter, system-ui, sans-serif',
@@ -174,9 +193,19 @@ export default function App() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [savedThemes, setSavedThemes] = useState<SavedTheme[]>(loadSavedThemes);
   const [activeThemeId, setActiveThemeId] = useState<string | null>(loadActiveThemeId);
+  const [colorMode, setColorMode] = useState<ColorMode>(loadColorMode);
+  const prefersDark = useMediaQuery('(prefers-color-scheme: dark)');
   const wiredNavItems = useNavItems(setActivePath);
 
-  const theme = useMemo(() => buildTheme(primaryColor), [primaryColor]);
+  const resolvedMode: 'light' | 'dark' =
+    colorMode === 'system' ? (prefersDark ? 'dark' : 'light') : colorMode;
+
+  const theme = useMemo(() => buildTheme(primaryColor, resolvedMode), [primaryColor, resolvedMode]);
+
+  const handleColorModeChange = useCallback((mode: ColorMode) => {
+    setColorMode(mode);
+    persistColorMode(mode);
+  }, []);
 
   // Apply active theme on mount
   useEffect(() => {
@@ -220,6 +249,20 @@ export default function App() {
       persistActiveThemeId(null);
     }
   }, [activeThemeId]);
+
+  if (activePath === '/settings/preferences') {
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <PreferencesView
+          navItems={wiredNavItems}
+          onNavigate={setActivePath}
+          colorMode={colorMode}
+          onColorModeChange={handleColorModeChange}
+        />
+      </ThemeProvider>
+    );
+  }
 
   if (activePath === '/inventory/stock') {
     return (

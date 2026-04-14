@@ -13,6 +13,11 @@ import { HugeiconsIcon } from '@hugeicons/react';
 import {
   Box,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   IconButton,
   MenuItem,
   Popover,
@@ -87,7 +92,7 @@ function ColorField({ label, value, onChange, required }: ColorFieldProps) {
           fontWeight: 500,
           fontSize: 14,
           lineHeight: '16px',
-          color: '#1C1C28',
+          color: 'text.primary',
           textAlign: 'left',
         }}
       >
@@ -102,7 +107,7 @@ function ColorField({ label, value, onChange, required }: ColorFieldProps) {
           width: { xs: 180, sm: 260 },
           flexShrink: 0,
           height: 40,
-          bgcolor: 'white',
+          bgcolor: 'background.paper',
           borderRadius: '10px',
           boxShadow:
             '0px 0px 2px 0px rgba(40,41,61,0.04), 0px 4px 8px 0px rgba(96,97,112,0.16)',
@@ -122,7 +127,7 @@ function ColorField({ label, value, onChange, required }: ColorFieldProps) {
               fontWeight: 500,
               fontSize: 14,
               lineHeight: '16px',
-              color: '#555770',
+              color: 'text.secondary',
               p: 0,
             },
           }}
@@ -233,11 +238,11 @@ function LogoDropZone({ previewUrl, defaultUrl, onFileChange }: LogoDropZoneProp
               component="img"
               src={displayUrl}
               alt="Logo preview"
-              sx={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+              sx={{ width: 80, height: 80, objectFit: 'contain' }}
             />
           ) : (
             <Box sx={{ textAlign: 'center', px: 1 }}>
-              <Typography sx={{ fontSize: 12, color: '#555770', lineHeight: '16px' }}>
+              <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: '16px' }}>
                 Drag & drop or tap to upload logo
               </Typography>
             </Box>
@@ -256,11 +261,11 @@ function LogoDropZone({ previewUrl, defaultUrl, onFileChange }: LogoDropZoneProp
               position: 'absolute',
               bottom: -6,
               right: -6,
-              bgcolor: 'white',
+              bgcolor: 'background.paper',
               boxShadow: '0px 1px 4px rgba(0,0,0,0.15)',
               width: 28,
               height: 28,
-              '&:hover': { bgcolor: '#f5f5f5' },
+              '&:hover': { bgcolor: 'action.hover' },
             }}
           >
             <HugeiconsIcon icon={PencilEdit01Icon} size={14} />
@@ -371,6 +376,7 @@ export default function ThemeEditorView({
   /* ---- drawer state ---- */
   const [drawer1Open, setDrawer1Open] = useState(true);
   const [drawer2Open, setDrawer2Open] = useState(true);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
   /* ---- editor state ---- */
   const [editorText, setEditorText] = useState('');
@@ -621,7 +627,7 @@ export default function ThemeEditorView({
                 }}
               >
                 <Typography
-                  sx={{ width: 180, flexShrink: 0, fontWeight: 500, fontSize: 14, lineHeight: '16px', color: '#1C1C28', textAlign: 'left' }}
+                  sx={{ width: 180, flexShrink: 0, fontWeight: 500, fontSize: 14, lineHeight: '16px', color: 'text.primary', textAlign: 'left' }}
                 >
                   Theme
                 </Typography>
@@ -632,7 +638,7 @@ export default function ThemeEditorView({
                   sx={{
                     width: { xs: 180, sm: 260 },
                     flexShrink: 0,
-                    bgcolor: 'white',
+                    bgcolor: 'background.paper',
                     borderRadius: '10px',
                     boxShadow: BTN_SHADOW,
                     '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
@@ -640,7 +646,7 @@ export default function ThemeEditorView({
                     fontFamily: 'Inter, sans-serif',
                     fontSize: 14,
                     fontWeight: 500,
-                    color: '#555770',
+                    color: 'text.secondary',
                   }}
                 >
                   {savedThemes.map((t) => (
@@ -664,7 +670,7 @@ export default function ThemeEditorView({
                 }}
               >
                 <Typography
-                  sx={{ width: 180, flexShrink: 0, fontWeight: 500, fontSize: 14, lineHeight: '16px', color: '#1C1C28', textAlign: 'left' }}
+                  sx={{ width: 180, flexShrink: 0, fontWeight: 500, fontSize: 14, lineHeight: '16px', color: 'text.primary', textAlign: 'left' }}
                 >
                   Theme Name <Box component="span" sx={{ color: '#d32f2f' }}>*</Box>
                 </Typography>
@@ -675,7 +681,7 @@ export default function ThemeEditorView({
                     width: { xs: 180, sm: 260 },
                     flexShrink: 0,
                     height: 40,
-                    bgcolor: 'white',
+                    bgcolor: 'background.paper',
                     borderRadius: '10px',
                     boxShadow: BTN_SHADOW,
                     px: '10px',
@@ -697,7 +703,7 @@ export default function ThemeEditorView({
                         fontWeight: 500,
                         fontSize: 14,
                         lineHeight: '16px',
-                        color: '#555770',
+                        color: 'text.secondary',
                         p: 0,
                       },
                     }}
@@ -735,7 +741,7 @@ export default function ThemeEditorView({
               fontFamily: '"SF Mono", "Fira Code", "Fira Mono", Menlo, monospace',
               fontSize: 14,
               lineHeight: '16px',
-              color: jsonError ? '#d32f2f' : '#000',
+              color: jsonError ? 'error.main' : 'text.primary',
               border: jsonError ? '1px solid #d32f2f' : 'none',
               outline: 'none',
               resize: 'vertical',
@@ -755,12 +761,13 @@ export default function ThemeEditorView({
             justifyContent: 'flex-end',
             gap: '10px',
             flexWrap: 'wrap',
+            pb: 4,
           }}
         >
           {/* Delete — only for existing saved themes */}
           {isExistingTheme && (
             <Button
-              onClick={handleDelete}
+              onClick={() => setDeleteConfirmOpen(true)}
               startIcon={<HugeiconsIcon icon={Delete02Icon} size={20} />}
               sx={{
                 mr: 'auto',
@@ -771,7 +778,7 @@ export default function ThemeEditorView({
                 fontWeight: 500,
                 fontSize: 14,
                 color: '#d32f2f',
-                bgcolor: 'white',
+                bgcolor: 'background.paper',
                 boxShadow: BTN_SHADOW,
                 px: '20px',
                 '&:hover': { bgcolor: '#fef2f2' },
@@ -793,7 +800,7 @@ export default function ThemeEditorView({
               fontWeight: 500,
               fontSize: 14,
               color: '#3E7BFA',
-              bgcolor: 'white',
+              bgcolor: 'background.paper',
               boxShadow: BTN_SHADOW,
               px: '20px',
               '&:hover': { bgcolor: '#f0f4ff' },
@@ -826,6 +833,31 @@ export default function ThemeEditorView({
           </Button>
         </Box>
       </Box>
+      {/* Delete confirmation dialog */}
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+      >
+        <DialogTitle>Delete Theme</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete "{themeName}"? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteConfirmOpen(false)}>Cancel</Button>
+          <Button
+            onClick={() => {
+              setDeleteConfirmOpen(false);
+              handleDelete();
+            }}
+            color="error"
+            variant="contained"
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </NavLayout>
   );
 }

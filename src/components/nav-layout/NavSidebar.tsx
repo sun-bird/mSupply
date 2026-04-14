@@ -13,6 +13,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { useState } from 'react';
 import msupplyLogo from '../../assets/msupply-logo.svg';
 import type { NavItem } from './nav.types';
@@ -29,6 +30,9 @@ interface SidebarContentProps {
 }
 
 function SidebarContent({ navItems, activePath, collapsed, onToggleCollapse, logoUrl }: SidebarContentProps) {
+  const theme = useTheme();
+  const primaryBgHover = alpha(theme.palette.primary.main, 0.1);
+
   const initialOpen =
     navItems.find((item) => item.children?.some((c) => c.href === activePath))?.href ?? null;
 
@@ -95,15 +99,15 @@ function SidebarContent({ navItems, activePath, collapsed, onToggleCollapse, log
                   color: isParentActive || isChildActive ? 'primary.main' : 'text.secondary',
                 },
                 '&:hover': {
-                  bgcolor: 'rgba(233,92,48,0.05)',
+                  bgcolor: primaryBgHover,
                   color: 'primary.main',
                   '& .MuiListItemIcon-root': { color: 'primary.main' },
                 },
                 '&.Mui-selected': {
-                  bgcolor: 'rgba(233,92,48,0.05)',
+                  bgcolor: primaryBgHover,
                   color: 'primary.main',
                   '& .MuiListItemIcon-root': { color: 'primary.main' },
-                  '&:hover': { bgcolor: 'rgba(233,92,48,0.05)' },
+                  '&:hover': { bgcolor: primaryBgHover },
                 },
               }}
             >
@@ -161,19 +165,21 @@ function SidebarContent({ navItems, activePath, collapsed, onToggleCollapse, log
                           onClick={child.onClick}
                           selected={isActive}
                           sx={{
-                            pl: '52px',
+                            mx: 1,
+                            borderRadius: '8px',
+                            pl: '44px',
                             pr: 2,
                             py: '4px',
                             minHeight: 32,
                             color: isActive ? 'primary.main' : 'text.primary',
                             '&:hover': {
-                              bgcolor: 'rgba(233,92,48,0.05)',
+                              bgcolor: primaryBgHover,
                               color: 'primary.main',
                             },
                             '&.Mui-selected': {
-                              bgcolor: 'rgba(233,92,48,0.05)',
+                              bgcolor: primaryBgHover,
                               color: 'primary.main',
-                              '&:hover': { bgcolor: 'rgba(233,92,48,0.05)' },
+                              '&:hover': { bgcolor: primaryBgHover },
                             },
                           }}
                         >
@@ -221,9 +227,12 @@ export default function NavSidebar({
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   // Manual collapse state; tablet starts collapsed, desktop starts expanded
   const [collapsed, setCollapsed] = useState(false);
+  const [hovered, setHovered] = useState(false);
   const toggleCollapse = () => setCollapsed((v) => !v);
 
-  const drawerWidth = collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH;
+  // When collapsed, hovering temporarily expands the sidebar
+  const isVisuallyCollapsed = collapsed && !hovered;
+  const drawerWidth = isVisuallyCollapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH;
 
   if (isMobile) {
     return (
@@ -250,6 +259,8 @@ export default function NavSidebar({
   return (
     <Drawer
       variant="permanent"
+      onMouseEnter={() => { if (collapsed) setHovered(true); }}
+      onMouseLeave={() => setHovered(false)}
       sx={{
         width: drawerWidth,
         flexShrink: 0,
@@ -258,18 +269,22 @@ export default function NavSidebar({
           width: drawerWidth,
           boxSizing: 'border-box',
           border: 'none',
-          bgcolor: 'transparent',
+          bgcolor: hovered && collapsed ? 'background.paper' : 'transparent',
           position: 'relative',
           height: '100%',
           overflowX: 'hidden',
           transition: 'width 0.2s ease',
+          boxShadow: hovered && collapsed
+            ? '0px 0px 2px rgba(40,41,61,0.04), 0px 4px 8px rgba(96,97,112,0.16)'
+            : 'none',
+          zIndex: hovered && collapsed ? 1 : 'auto',
         },
       }}
     >
       <SidebarContent
         navItems={navItems}
         activePath={activePath}
-        collapsed={collapsed}
+        collapsed={isVisuallyCollapsed}
         onToggleCollapse={toggleCollapse}
         logoUrl={logoUrl}
       />

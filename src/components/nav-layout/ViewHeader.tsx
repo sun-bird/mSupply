@@ -110,7 +110,7 @@ export default function ViewHeader({
               whiteSpace: 'nowrap',
               '&:hover': {
                 borderColor: 'transparent',
-                bgcolor: 'rgba(233,92,48,0.05)',
+                bgcolor: 'action.hover',
                 boxShadow:
                   '0px 0px 2px rgba(40,41,61,0.08), 0px 4px 12px rgba(96,97,112,0.24)',
               },
@@ -144,7 +144,7 @@ export default function ViewHeader({
                   sx={{
                     color: 'primary.main',
                     p: 0.75,
-                    '&:hover': { bgcolor: 'rgba(233,92,48,0.05)' },
+                    '&:hover': { bgcolor: 'action.hover' },
                   }}
                 >
                   {action.icon}
@@ -159,7 +159,7 @@ export default function ViewHeader({
           <Tooltip title="Help">
             <IconButton
               size="small"
-              sx={{ color: 'primary.main', '&:hover': { bgcolor: 'rgba(233,92,48,0.05)' } }}
+              sx={{ color: 'primary.main', '&:hover': { bgcolor: 'action.hover' } }}
             >
               <HugeiconsIcon icon={HelpCircleIcon} size={20} />
             </IconButton>

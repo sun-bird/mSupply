@@ -1,6 +1,7 @@
 import { ArrowRight01Icon, HelpCircleIcon, PrinterIcon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Box, Button, TextField, Typography } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import msupplyLogo from '../assets/msupply-logo.svg';
 import msupplyLogoWhite from '../assets/msupply-logo-white.svg';
 import { NavLayout } from '../components/nav-layout';
@@ -67,7 +68,8 @@ export default function LoginSampleView({
         <Box
           sx={{
             flex: 1,
-            background: `linear-gradient(137deg, ${secondaryColor || '#FF8800'} 7%, ${primaryColor || '#E95C30'} 93%)`,
+            bgcolor: 'white',
+            background: `linear-gradient(137deg, ${alpha(primaryColor || '#E95C30', 0.6)} 7%, ${primaryColor || '#E95C30'} 93%)`,
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'flex-end',
@@ -151,8 +153,8 @@ export default function LoginSampleView({
             src={displayLogo}
             alt="Brand logo"
             sx={{
-              width: 120,
-              height: 120,
+              width: 100,
+              height: 100,
               objectFit: 'contain',
               mt: 4,
               mb: 6,
@@ -160,7 +162,7 @@ export default function LoginSampleView({
           />
 
           {/* Form */}
-          <Box sx={{ width: '100%', maxWidth: 282, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+          <Box sx={{ width: '100%', maxWidth: 200, display: 'flex', flexDirection: 'column', gap: 2.5, mt: '60px' }}>
             {/* Username */}
             <Box>
               <Typography
@@ -241,7 +243,7 @@ export default function LoginSampleView({
               <Button
                 endIcon={<HugeiconsIcon icon={ArrowRight01Icon} size={20} />}
                 sx={{
-                  height: 40,
+                  height: 36,
                   borderRadius: '24px',
                   textTransform: 'none',
                   fontFamily: 'Inter, sans-serif',

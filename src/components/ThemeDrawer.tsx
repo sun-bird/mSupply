@@ -39,7 +39,7 @@ export default function ThemeDrawer({
               fontWeight: 500,
               fontSize: 18,
               lineHeight: '24px',
-              color: '#1C1C28',
+              color: 'text.primary',
             }}
           >
             {title}
@@ -54,7 +54,7 @@ export default function ThemeDrawer({
       <Collapse in={open} timeout="auto">
         <Box
           sx={{
-            bgcolor: 'white',
+            bgcolor: 'background.paper',
             borderRadius: '10px',
             boxShadow: '0px 0px 2px 0px rgba(40,41,61,0.04), 0px 4px 8px 0px rgba(96,97,112,0.16)',
             px: '20px',
