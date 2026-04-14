@@ -34,6 +34,23 @@ const STORAGE_THEMES = 'msupply-themes';
 const STORAGE_ACTIVE = 'msupply-active-theme-id';
 const STORAGE_COLOR_MODE = 'msupply-color-mode';
 
+// Convert imported images to data URLs for localStorage persistence
+function imgToDataUrl(src: string): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      canvas.getContext('2d')!.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = () => resolve('');
+    img.src = src;
+  });
+}
+
 const DEFAULT_THEMES: SavedTheme[] = [
   { id: 'default-msupply', themeName: 'mSupply', primaryColor: '#E95C30', secondaryColor: '#FF8800', logoDataUrl: null },
   { id: 'default-tonga', themeName: 'Tonga', primaryColor: '#C10000', secondaryColor: '#FF8800', logoDataUrl: null },
@@ -43,12 +60,31 @@ const DEFAULT_THEMES: SavedTheme[] = [
   { id: 'default-nigeria', themeName: 'Nigeria', primaryColor: '#008751', secondaryColor: '#FF8800', logoDataUrl: null },
 ];
 
+const THEME_LOGOS: Record<string, string> = {
+  'default-msupply': new URL('./assets/msupply-logo.svg', import.meta.url).href,
+  'default-tonga': new URL('./assets/themes/tonga.png', import.meta.url).href,
+  'default-wfp': new URL('./assets/themes/wfp.png', import.meta.url).href,
+  'default-salud': new URL('./assets/themes/salud.png', import.meta.url).href,
+  'default-fiji': new URL('./assets/themes/fiji.png', import.meta.url).href,
+  'default-nigeria': new URL('./assets/themes/nigeria.png', import.meta.url).href,
+};
+
+async function seedDefaultThemes(): Promise<SavedTheme[]> {
+  const seeded: SavedTheme[] = [];
+  for (const theme of DEFAULT_THEMES) {
+    const logoSrc = THEME_LOGOS[theme.id];
+    const logoDataUrl = logoSrc ? await imgToDataUrl(logoSrc) : null;
+    seeded.push({ ...theme, logoDataUrl });
+  }
+  persistThemes(seeded);
+  return seeded;
+}
+
 function loadSavedThemes(): SavedTheme[] {
   try {
     const raw = localStorage.getItem(STORAGE_THEMES);
     if (raw) return JSON.parse(raw) as SavedTheme[];
-    // Seed defaults on first visit
-    persistThemes(DEFAULT_THEMES);
+    // Return defaults without logos initially — useEffect will seed with logos
     return DEFAULT_THEMES;
   } catch {
     return DEFAULT_THEMES;
@@ -219,6 +255,16 @@ export default function App() {
   const handleColorModeChange = useCallback((mode: ColorMode) => {
     setColorMode(mode);
     persistColorMode(mode);
+  }, []);
+
+  // Seed default themes with logos on first visit
+  useEffect(() => {
+    if (!localStorage.getItem(STORAGE_THEMES)) {
+      seedDefaultThemes().then((seeded) => {
+        setSavedThemes(seeded);
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Apply active theme on mount
