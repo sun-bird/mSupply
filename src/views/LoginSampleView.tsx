@@ -2,6 +2,7 @@ import { ArrowRight01Icon, HelpCircleIcon, PrinterIcon } from '@hugeicons/core-f
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Box, Button, TextField, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
+import { useTranslation } from 'react-i18next';
 import msupplyLogo from '../assets/msupply-logo.svg';
 import msupplyLogoWhite from '../assets/msupply-logo-white.svg';
 import { NavLayout } from '../components/nav-layout';
@@ -22,6 +23,7 @@ export default function LoginSampleView({
   secondaryColor,
   logoUrl,
 }: LoginSampleViewProps) {
+  const { t } = useTranslation();
   const displayLogo = logoUrl || msupplyLogo;
 
   return (
@@ -30,17 +32,17 @@ export default function LoginSampleView({
       activePath="/settings/login-sample"
       logoUrl={displayLogo}
       headerProps={{
-        title: 'Login Sample',
+        title: t('loginSample.title'),
         onBack: () => onNavigate('/settings/themes'),
         comboActions: [
           {
             icon: <HugeiconsIcon icon={PrinterIcon} size={20} />,
-            label: 'Print',
+            label: t('common.print'),
             onClick: () => {},
           },
           {
             icon: <HugeiconsIcon icon={HelpCircleIcon} size={20} />,
-            label: 'Help',
+            label: t('common.help'),
             onClick: () => {},
           },
         ],
@@ -48,7 +50,7 @@ export default function LoginSampleView({
       footerProps={{
         storeName: 'Central Tamaki Warehouse',
         userName: 'Mark Prins',
-        syncedAt: 'Synced 3 mins ago',
+        syncedAt: t('footer.syncedAgo', { time: '3 mins' }),
         isOnline: true,
       }}
     >
@@ -98,7 +100,7 @@ export default function LoginSampleView({
                 letterSpacing: '-0.02px',
               }}
             >
-              Open mSupply
+              {t('loginSample.openMsupply')}
             </Typography>
           </Box>
 
@@ -114,7 +116,7 @@ export default function LoginSampleView({
               mb: 6,
             }}
           >
-            Simple. Powerful. Supply Chain Management.
+            {t('loginSample.headline')}
           </Typography>
 
           {/* Description */}
@@ -129,7 +131,7 @@ export default function LoginSampleView({
               maxWidth: 478,
             }}
           >
-            Welcome to Open mSupply. Your partner for managing health supply chains and improving medicine availability.
+            {t('loginSample.welcome')}
           </Typography>
         </Box>
 
@@ -153,16 +155,16 @@ export default function LoginSampleView({
             src={displayLogo}
             alt="Brand logo"
             sx={{
-              width: 100,
-              height: 100,
+              width: 140,
+              height: 140,
               objectFit: 'contain',
               mt: 4,
-              mb: 6,
+              mb: 4,
             }}
           />
 
           {/* Form */}
-          <Box sx={{ width: '100%', maxWidth: 200, display: 'flex', flexDirection: 'column', gap: 2.5, mt: '60px' }}>
+          <Box sx={{ width: '100%', maxWidth: 200, display: 'flex', flexDirection: 'column', gap: 2.5, mt: '40px' }}>
             {/* Username */}
             <Box>
               <Typography
@@ -178,7 +180,7 @@ export default function LoginSampleView({
                   pl: 1,
                 }}
               >
-                Username
+                {t('loginSample.username')}
               </Typography>
               <TextField
                 fullWidth
@@ -215,7 +217,7 @@ export default function LoginSampleView({
                   pl: 1,
                 }}
               >
-                Password
+                {t('loginSample.password')}
               </Typography>
               <TextField
                 fullWidth
@@ -257,7 +259,7 @@ export default function LoginSampleView({
                   '& .MuiButton-endIcon': { color: primaryColor },
                 }}
               >
-                Next
+                {t('loginSample.next')}
               </Button>
             </Box>
           </Box>

@@ -6,7 +6,9 @@ import {
   Sun03Icon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { Box, Typography } from '@mui/material';
+import { Box, MenuItem, Select, Typography } from '@mui/material';
+import i18next from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { NavLayout } from '../components/nav-layout';
 import type { NavItem } from '../components/nav-layout';
 
@@ -17,6 +19,7 @@ interface PreferencesViewProps {
   onNavigate: (path: string) => void;
   colorMode: ColorMode;
   onColorModeChange: (mode: ColorMode) => void;
+  logoUrl?: string;
 }
 
 export default function PreferencesView({
@@ -24,23 +27,27 @@ export default function PreferencesView({
   onNavigate,
   colorMode,
   onColorModeChange,
+  logoUrl,
 }: PreferencesViewProps) {
+  const { t } = useTranslation();
+
   return (
     <NavLayout
       navItems={navItems}
       activePath="/settings/preferences"
+      logoUrl={logoUrl}
       headerProps={{
-        title: 'Preferences',
+        title: t('preferences.title'),
         onBack: () => onNavigate('/dashboard'),
         comboActions: [
           {
             icon: <HugeiconsIcon icon={PrinterIcon} size={20} />,
-            label: 'Print',
+            label: t('common.print'),
             onClick: () => {},
           },
           {
             icon: <HugeiconsIcon icon={HelpCircleIcon} size={20} />,
-            label: 'Help',
+            label: t('common.help'),
             onClick: () => {},
           },
         ],
@@ -48,7 +55,7 @@ export default function PreferencesView({
       footerProps={{
         storeName: 'Central Tamaki Warehouse',
         userName: 'Mark Prins',
-        syncedAt: 'Synced 3 mins ago',
+        syncedAt: t('footer.syncedAgo', { time: '3 mins' }),
         isOnline: true,
       }}
     >
@@ -79,7 +86,7 @@ export default function PreferencesView({
               mb: 3,
             }}
           >
-            Appearance
+            {t('preferences.appearance')}
           </Typography>
 
           {/* Color mode toggle — combined inline */}
@@ -98,7 +105,7 @@ export default function PreferencesView({
             {(['light', 'dark', 'system'] as const).map((mode) => {
               const isSelected = colorMode === mode;
               const icon = mode === 'light' ? Sun03Icon : mode === 'dark' ? Moon02Icon : SmartPhone01Icon;
-              const label = mode === 'light' ? 'Light' : mode === 'dark' ? 'Dark' : 'System';
+              const label = mode === 'light' ? t('preferences.light') : mode === 'dark' ? t('preferences.dark') : t('preferences.system');
               return (
                 <Box
                   key={mode}
@@ -141,11 +148,62 @@ export default function PreferencesView({
             }}
           >
             {colorMode === 'system'
-              ? 'Following your operating system preference.'
+              ? t('preferences.systemActive')
               : colorMode === 'dark'
-                ? 'Dark mode is active.'
-                : 'Light mode is active.'}
+                ? t('preferences.darkActive')
+                : t('preferences.lightActive')}
           </Typography>
+
+        </Box>
+
+        {/* Language card */}
+        <Box
+          sx={{
+            bgcolor: 'background.paper',
+            borderRadius: '10px',
+            boxShadow: '0px 0px 2px rgba(40,41,61,0.04), 0px 4px 8px rgba(96,97,112,0.16)',
+            p: 3,
+            mt: 3,
+          }}
+        >
+          <Typography
+            sx={{
+              fontFamily: 'Inter, sans-serif',
+              fontWeight: 500,
+              fontSize: 18,
+              lineHeight: '24px',
+              color: 'text.primary',
+              mb: 3,
+            }}
+          >
+            {t('preferences.language')}
+          </Typography>
+
+          <Select
+            value={i18next.language}
+            onChange={(e) => i18next.changeLanguage(e.target.value as string)}
+            size="small"
+            sx={{
+              minWidth: 200,
+              bgcolor: 'background.paper',
+              borderRadius: '10px',
+              boxShadow: '0px 0px 2px rgba(40,41,61,0.04), 0px 4px 8px rgba(96,97,112,0.16)',
+              '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+              '& .MuiSelect-select': { textAlign: 'left' },
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 14,
+              fontWeight: 500,
+              color: 'text.secondary',
+            }}
+          >
+            <MenuItem value="en" sx={{ fontSize: 13 }}>English</MenuItem>
+            <MenuItem value="ar" sx={{ fontSize: 13 }}>العربية</MenuItem>
+            <MenuItem value="bn" sx={{ fontSize: 13 }}>বাংলা</MenuItem>
+            <MenuItem value="fr" sx={{ fontSize: 13 }}>Français</MenuItem>
+            <MenuItem value="es" sx={{ fontSize: 13 }}>Español</MenuItem>
+            <MenuItem value="fj" sx={{ fontSize: 13 }}>Vosa Vakaviti</MenuItem>
+            <MenuItem value="to" sx={{ fontSize: 13 }}>Lea faka-Tonga</MenuItem>
+          </Select>
         </Box>
       </Box>
     </NavLayout>

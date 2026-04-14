@@ -167,7 +167,7 @@ function SidebarContent({ navItems, activePath, collapsed, onToggleCollapse, log
                           sx={{
                             mx: 1,
                             borderRadius: '8px',
-                            pl: '44px',
+                            pl: '48px',
                             pr: 2,
                             py: '4px',
                             minHeight: 32,

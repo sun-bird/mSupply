@@ -16,9 +16,13 @@
     "@hugeicons/react": "^1.1.6",
     "@mui/icons-material": "^7.3.9",
     "@mui/material": "^7.3.9",
+    "i18next": "^26.0.4",
     "react": "^19.2.4",
     "react-colorful": "^5.6.1",
-    "react-dom": "^19.2.4"
+    "react-dom": "^19.2.4",
+    "react-i18next": "^17.0.3",
+    "stylis": "^4.3.6",
+    "stylis-plugin-rtl": "^2.1.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",

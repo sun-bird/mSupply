@@ -11,6 +11,7 @@ import {
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
+  Alert,
   Box,
   Button,
   Dialog,
@@ -21,6 +22,7 @@ import {
   IconButton,
   MenuItem,
   Popover,
+  Snackbar,
   Select,
   TextField,
   Typography,
@@ -35,6 +37,7 @@ import {
   type DragEvent,
 } from 'react';
 import { HexColorPicker } from 'react-colorful';
+import { useTranslation } from 'react-i18next';
 import msupplyLogo from '../assets/msupply-logo.svg';
 import ThemeDrawer from '../components/ThemeDrawer';
 import { NavLayout } from '../components/nav-layout';
@@ -173,6 +176,7 @@ interface LogoDropZoneProps {
 }
 
 function LogoDropZone({ previewUrl, defaultUrl, onFileChange }: LogoDropZoneProps) {
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -180,11 +184,11 @@ function LogoDropZone({ previewUrl, defaultUrl, onFileChange }: LogoDropZoneProp
 
   const handleFile = (file: File) => {
     if (file.size > MAX_LOGO_SIZE) {
-      setError('File exceeds 1 MB limit');
+      setError(t('themeEditor.fileTooLarge'));
       return;
     }
     if (!file.type.startsWith('image/')) {
-      setError('File must be an image');
+      setError(t('themeEditor.fileMustBeImage'));
       return;
     }
     setError(null);
@@ -243,7 +247,7 @@ function LogoDropZone({ previewUrl, defaultUrl, onFileChange }: LogoDropZoneProp
           ) : (
             <Box sx={{ textAlign: 'center', px: 1 }}>
               <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: '16px' }}>
-                Drag & drop or tap to upload logo
+                {t('themeEditor.dragDropLogo')}
               </Typography>
             </Box>
           )}
@@ -365,6 +369,8 @@ export default function ThemeEditorView({
   onSaveTheme,
   onDeleteTheme,
 }: ThemeEditorViewProps) {
+  const { t } = useTranslation();
+
   /* ---- form state ---- */
   const [editingId, setEditingId] = useState<string | null>(activeThemeId);
   const [themeName, setThemeName] = useState(DEFAULT_STATE.themeName);
@@ -377,6 +383,7 @@ export default function ThemeEditorView({
   const [drawer1Open, setDrawer1Open] = useState(true);
   const [drawer2Open, setDrawer2Open] = useState(true);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [saveToastOpen, setSaveToastOpen] = useState(false);
 
   /* ---- editor state ---- */
   const [editorText, setEditorText] = useState('');
@@ -481,21 +488,21 @@ export default function ThemeEditorView({
       });
       return;
     }
-    const t = savedThemes.find((s) => s.id === id);
-    if (!t) return;
-    setEditingId(t.id);
-    setThemeName(t.themeName);
-    setPrimaryColor(t.primaryColor);
-    setSecondaryColor(t.secondaryColor);
+    const found = savedThemes.find((s) => s.id === id);
+    if (!found) return;
+    setEditingId(found.id);
+    setThemeName(found.themeName);
+    setPrimaryColor(found.primaryColor);
+    setSecondaryColor(found.secondaryColor);
     setLogoFile(null);
-    setLogoPreviewUrl(t.logoDataUrl);
-    if (t.logoDataUrl) onLogoChange(t.logoDataUrl);
+    setLogoPreviewUrl(found.logoDataUrl);
+    if (found.logoDataUrl) onLogoChange(found.logoDataUrl);
     else onLogoChange(null);
     setSnapshot({
-      themeName: t.themeName,
-      primaryColor: t.primaryColor,
-      secondaryColor: t.secondaryColor,
-      logoPreviewUrl: t.logoDataUrl,
+      themeName: found.themeName,
+      primaryColor: found.primaryColor,
+      secondaryColor: found.secondaryColor,
+      logoPreviewUrl: found.logoDataUrl,
     });
   };
 
@@ -547,6 +554,7 @@ export default function ThemeEditorView({
       secondaryColor: theme.secondaryColor,
       logoPreviewUrl: logoDataUrl,
     });
+    setSaveToastOpen(true);
   };
 
   /* ---- Delete ---- */
@@ -565,22 +573,22 @@ export default function ThemeEditorView({
       activePath="/settings/themes"
       logoUrl={logoPreviewUrl || msupplyLogo}
       headerProps={{
-        title: 'Theme Editor',
+        title: t('themeEditor.title'),
         onBack: () => onNavigate('/dashboard'),
         primaryAction: {
-          label: 'Create Theme',
+          label: t('themeEditor.createTheme'),
           icon: <HugeiconsIcon icon={AddCircleIcon} size={24} />,
           onClick: () => loadTheme('__new__'),
         },
         comboActions: [
           {
             icon: <HugeiconsIcon icon={PrinterIcon} size={20} />,
-            label: 'Print',
+            label: t('common.print'),
             onClick: () => {},
           },
           {
             icon: <HugeiconsIcon icon={HelpCircleIcon} size={20} />,
-            label: 'Help',
+            label: t('common.help'),
             onClick: () => {},
           },
         ],
@@ -588,7 +596,7 @@ export default function ThemeEditorView({
       footerProps={{
         storeName: 'Central Tamaki Warehouse',
         userName: 'Mark Prins',
-        syncedAt: 'Synced 3 mins ago',
+        syncedAt: t('footer.syncedAgo', { time: '3 mins' }),
         isOnline: true,
       }}
     >
@@ -606,7 +614,7 @@ export default function ThemeEditorView({
       >
         {/* Drawer 1: Theme Information */}
         <ThemeDrawer
-          title="Theme Information"
+          title={t('themeEditor.themeInformation')}
           icon={<HugeiconsIcon icon={PaintBoardIcon} size={20} />}
           open={drawer1Open}
           onToggle={() => setDrawer1Open((v) => !v)}
@@ -629,11 +637,12 @@ export default function ThemeEditorView({
                 <Typography
                   sx={{ width: 180, flexShrink: 0, fontWeight: 500, fontSize: 14, lineHeight: '16px', color: 'text.primary', textAlign: 'left' }}
                 >
-                  Theme
+                  {t('themeEditor.theme')}
                 </Typography>
                 <Select
-                  value={editingId ?? '__new__'}
+                  value={editingId || ''}
                   onChange={(e) => loadTheme(e.target.value as string)}
+                  displayEmpty
                   size="small"
                   sx={{
                     width: { xs: 180, sm: 260 },
@@ -649,9 +658,9 @@ export default function ThemeEditorView({
                     color: 'text.secondary',
                   }}
                 >
-                  {savedThemes.map((t) => (
-                    <MenuItem key={t.id} value={t.id} sx={{ fontSize: 12 }}>
-                      {t.themeName}
+                  {savedThemes.map((theme) => (
+                    <MenuItem key={theme.id} value={theme.id} sx={{ fontSize: 12 }}>
+                      {theme.themeName}
                     </MenuItem>
                   ))}
                 </Select>
@@ -672,7 +681,7 @@ export default function ThemeEditorView({
                 <Typography
                   sx={{ width: 180, flexShrink: 0, fontWeight: 500, fontSize: 14, lineHeight: '16px', color: 'text.primary', textAlign: 'left' }}
                 >
-                  Theme Name <Box component="span" sx={{ color: '#d32f2f' }}>*</Box>
+                  {t('themeEditor.themeName')} <Box component="span" sx={{ color: '#d32f2f' }}>*</Box>
                 </Typography>
                 <Box
                   sx={{
@@ -691,11 +700,11 @@ export default function ThemeEditorView({
                     value={themeName}
                     onChange={(e) => setThemeName(e.target.value.slice(0, 40))}
                     variant="standard"
-                    placeholder="Enter theme name"
+                    placeholder={t('themeEditor.enterThemeName')}
                     InputProps={{ disableUnderline: true }}
                     inputProps={{ maxLength: 40 }}
                     error={!themeName.trim() || isDuplicateName}
-                    helperText={isDuplicateName ? 'Name already exists' : undefined}
+                    helperText={isDuplicateName ? t('themeEditor.nameExists') : undefined}
                     sx={{
                       flex: 1,
                       '& .MuiInputBase-input': {
@@ -711,8 +720,8 @@ export default function ThemeEditorView({
                 </Box>
               </Box>
 
-              <ColorField label="Primary Brand Colour" value={primaryColor} onChange={setPrimaryColor} required />
-              <ColorField label="Secondary Brand Colour" value={secondaryColor} onChange={setSecondaryColor} />
+              <ColorField label={t('themeEditor.brandColour')} value={primaryColor} onChange={setPrimaryColor} required />
+              {/* <ColorField label="Secondary Brand Colour" value={secondaryColor} onChange={setSecondaryColor} /> */}
             </Box>
 
             {/* Logo drop zone — centered vertically beside all form fields */}
@@ -725,7 +734,7 @@ export default function ThemeEditorView({
 
         {/* Drawer 2: Editor */}
         <ThemeDrawer
-          title="Editor"
+          title={t('themeEditor.editor')}
           icon={<HugeiconsIcon icon={SourceCodeSquareIcon} size={20} />}
           open={drawer2Open}
           onToggle={() => setDrawer2Open((v) => !v)}
@@ -784,7 +793,7 @@ export default function ThemeEditorView({
                 '&:hover': { bgcolor: '#fef2f2' },
               }}
             >
-              Delete
+              {t('common.delete')}
             </Button>
           )}
 
@@ -806,7 +815,7 @@ export default function ThemeEditorView({
               '&:hover': { bgcolor: '#f0f4ff' },
             }}
           >
-            Cancel
+            {t('common.cancel')}
           </Button>
 
           {/* Save */}
@@ -829,23 +838,35 @@ export default function ThemeEditorView({
               '&.Mui-disabled': { bgcolor: '#a0b8f0', color: 'white' },
             }}
           >
-            Save
+            {t('common.save')}
           </Button>
         </Box>
       </Box>
+      {/* Save toast */}
+      <Snackbar
+        open={saveToastOpen}
+        autoHideDuration={3000}
+        onClose={() => setSaveToastOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setSaveToastOpen(false)} severity="success" variant="filled" sx={{ width: '100%' }}>
+          {t('themeEditor.themeSaved')}
+        </Alert>
+      </Snackbar>
+
       {/* Delete confirmation dialog */}
       <Dialog
         open={deleteConfirmOpen}
         onClose={() => setDeleteConfirmOpen(false)}
       >
-        <DialogTitle>Delete Theme</DialogTitle>
+        <DialogTitle>{t('themeEditor.deleteTheme')}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete "{themeName}"? This action cannot be undone.
+            {t('themeEditor.deleteConfirm', { name: themeName })}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteConfirmOpen(false)}>Cancel</Button>
+          <Button onClick={() => setDeleteConfirmOpen(false)}>{t('common.cancel')}</Button>
           <Button
             onClick={() => {
               setDeleteConfirmOpen(false);
@@ -854,7 +875,7 @@ export default function ThemeEditorView({
             color="error"
             variant="contained"
           >
-            Delete
+            {t('common.delete')}
           </Button>
         </DialogActions>
       </Dialog>

@@ -11,6 +11,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import type { ViewHeaderProps } from './nav.types';
 
 interface ViewHeaderInternalProps extends ViewHeaderProps {
@@ -24,6 +25,7 @@ export default function ViewHeader({
   comboActions = [],
   onMenuToggle,
 }: ViewHeaderInternalProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -50,7 +52,7 @@ export default function ViewHeader({
           <IconButton
             edge="start"
             onClick={onMenuToggle}
-            aria-label="open navigation"
+            aria-label={t('common.openNavigation')}
             size="small"
             sx={{ mr: 0.5, color: 'primary.main' }}
           >
@@ -64,7 +66,7 @@ export default function ViewHeader({
             <IconButton
               onClick={onBack}
               size="small"
-              aria-label="go back"
+              aria-label={t('common.goBack')}
               sx={{ color: 'primary.main' }}
             >
               <HugeiconsIcon icon={ArrowLeft01Icon} size={20} />

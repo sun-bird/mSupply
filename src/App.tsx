@@ -13,7 +13,12 @@ import {
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { CssBaseline, ThemeProvider, createTheme, useMediaQuery } from '@mui/material';
+import createCache from '@emotion/cache';
+import { CacheProvider } from '@emotion/react';
+import rtlPlugin from 'stylis-plugin-rtl';
+import { prefixer } from 'stylis';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { NavLayout } from './components/nav-layout';
 import type { NavItem } from './components/nav-layout';
 import GoodsReceivedView from './views/GoodsReceivedView';
@@ -61,9 +66,15 @@ function persistColorMode(mode: ColorMode) {
   localStorage.setItem(STORAGE_COLOR_MODE, mode);
 }
 
-function buildTheme(primaryColor: string, mode: 'light' | 'dark' = 'light') {
+const RTL_LANGUAGES = ['ar'];
+
+const ltrCache = createCache({ key: 'mui' });
+const rtlCache = createCache({ key: 'muirtl', stylisPlugins: [prefixer, rtlPlugin] });
+
+function buildTheme(primaryColor: string, mode: 'light' | 'dark' = 'light', direction: 'ltr' | 'rtl' = 'ltr') {
   const isDark = mode === 'dark';
   return createTheme({
+    direction,
     palette: {
       mode,
       primary: { main: primaryColor },
@@ -87,107 +98,91 @@ function buildTheme(primaryColor: string, mode: 'light' | 'dark' = 'light') {
   });
 }
 
-const navItems: NavItem[] = [
-  {
-    label: 'Dashboard',
-    icon: <HugeiconsIcon icon={DashboardSpeed01Icon} size={22} />,
-    href: '/dashboard',
-  },
-  {
-    label: 'Replenishment',
-    icon: <HugeiconsIcon icon={PackageOpenIcon} size={22} />,
-    href: '/replenishment',
-    children: [
-      { label: 'Purchase Orders', href: '/replenishment/purchase-orders' },
-      { label: 'Goods Received', href: '/replenishment/goods-received' },
-      { label: 'Internal Orders', href: '/replenishment/internal-orders' },
-      { label: 'Inbound Shipments', href: '/replenishment/inbound-shipments' },
-      { label: 'Supplier Returns', href: '/replenishment/supplier-returns' },
-      { label: 'R&R Forms', href: '/replenishment/rnr-forms' },
-      { label: 'Suppliers', href: '/replenishment/suppliers' },
-    ],
-  },
-  {
-    label: 'Inventory',
-    icon: <HugeiconsIcon icon={PackageProcessIcon} size={22} />,
-    href: '/inventory',
-    children: [
-      { label: 'Stock', href: '/inventory/stock' },
-      { label: 'Locations', href: '/inventory/locations' },
-      { label: 'Stocktake', href: '/inventory/stocktake' },
-    ],
-  },
-  {
-    label: 'Distribution',
-    icon: <HugeiconsIcon icon={DeliveryTruck02Icon} size={22} />,
-    href: '/distribution',
-    children: [
-      { label: 'Requisitions', href: '/distribution/requisitions' },
-      { label: 'Outbound Shipments', href: '/distribution/outbound-shipments' },
-      { label: 'Customer Returns', href: '/distribution/customer-returns' },
-      { label: 'Customers', href: '/distribution/customers' },
-    ],
-  },
-  {
-    label: 'Dispensary',
-    icon: <HugeiconsIcon icon={FirstAidKitIcon} size={22} />,
-    href: '/dispensary',
-    children: [
-      { label: 'Patients', href: '/dispensary/patients' },
-      { label: 'Prescriptions', href: '/dispensary/prescriptions' },
-      { label: 'Encounters', href: '/dispensary/encounters' },
-      { label: 'Clinicians', href: '/dispensary/clinicians' },
-    ],
-  },
-  {
-    label: 'Cold Chain',
-    icon: <HugeiconsIcon icon={ThermometerColdIcon} size={22} />,
-    href: '/cold-chain',
-    children: [
-      { label: 'Equipment', href: '/cold-chain/equipment' },
-      { label: 'Monitoring', href: '/cold-chain/monitoring' },
-      { label: 'Sensors', href: '/cold-chain/sensors' },
-    ],
-  },
-  {
-    label: 'Programs',
-    icon: <HugeiconsIcon icon={ProfileIcon} size={22} />,
-    href: '/programs',
-    children: [
-      { label: 'Immunizations', href: '/programs/immunizations' },
-    ],
-  },
-  {
-    label: 'Reports',
-    icon: <HugeiconsIcon icon={PieChartIcon} size={22} />,
-    href: '/reports',
-  },
-  {
-    label: 'Settings',
-    icon: <HugeiconsIcon icon={Settings04Icon} size={22} />,
-    href: '/settings',
-    children: [
-      { label: 'Preferences', href: '/settings/preferences' },
-      { label: 'Sync', href: '/settings/sync' },
-      { label: 'Themes', href: '/settings/themes' },
-      { label: 'Login Sample', href: '/settings/login-sample' },
-    ],
-  },
-];
+function buildNavItems(t: (key: string) => string): NavItem[] {
+  return [
+    { label: t('nav.dashboard'), icon: <HugeiconsIcon icon={DashboardSpeed01Icon} size={22} />, href: '/dashboard' },
+    {
+      label: t('nav.replenishment'), icon: <HugeiconsIcon icon={PackageOpenIcon} size={22} />, href: '/replenishment',
+      children: [
+        { label: t('nav.purchaseOrders'), href: '/replenishment/purchase-orders' },
+        { label: t('nav.goodsReceived'), href: '/replenishment/goods-received' },
+        { label: t('nav.internalOrders'), href: '/replenishment/internal-orders' },
+        { label: t('nav.inboundShipments'), href: '/replenishment/inbound-shipments' },
+        { label: t('nav.supplierReturns'), href: '/replenishment/supplier-returns' },
+        { label: t('nav.rnrForms'), href: '/replenishment/rnr-forms' },
+        { label: t('nav.suppliers'), href: '/replenishment/suppliers' },
+      ],
+    },
+    {
+      label: t('nav.inventory'), icon: <HugeiconsIcon icon={PackageProcessIcon} size={22} />, href: '/inventory',
+      children: [
+        { label: t('nav.stock'), href: '/inventory/stock' },
+        { label: t('nav.locations'), href: '/inventory/locations' },
+        { label: t('nav.stocktake'), href: '/inventory/stocktake' },
+      ],
+    },
+    {
+      label: t('nav.distribution'), icon: <HugeiconsIcon icon={DeliveryTruck02Icon} size={22} />, href: '/distribution',
+      children: [
+        { label: t('nav.requisitions'), href: '/distribution/requisitions' },
+        { label: t('nav.outboundShipments'), href: '/distribution/outbound-shipments' },
+        { label: t('nav.customerReturns'), href: '/distribution/customer-returns' },
+        { label: t('nav.customers'), href: '/distribution/customers' },
+      ],
+    },
+    {
+      label: t('nav.dispensary'), icon: <HugeiconsIcon icon={FirstAidKitIcon} size={22} />, href: '/dispensary',
+      children: [
+        { label: t('nav.patients'), href: '/dispensary/patients' },
+        { label: t('nav.prescriptions'), href: '/dispensary/prescriptions' },
+        { label: t('nav.encounters'), href: '/dispensary/encounters' },
+        { label: t('nav.clinicians'), href: '/dispensary/clinicians' },
+      ],
+    },
+    {
+      label: t('nav.coldChain'), icon: <HugeiconsIcon icon={ThermometerColdIcon} size={22} />, href: '/cold-chain',
+      children: [
+        { label: t('nav.equipment'), href: '/cold-chain/equipment' },
+        { label: t('nav.monitoring'), href: '/cold-chain/monitoring' },
+        { label: t('nav.sensors'), href: '/cold-chain/sensors' },
+      ],
+    },
+    {
+      label: t('nav.programs'), icon: <HugeiconsIcon icon={ProfileIcon} size={22} />, href: '/programs',
+      children: [
+        { label: t('nav.immunizations'), href: '/programs/immunizations' },
+      ],
+    },
+    { label: t('nav.reports'), icon: <HugeiconsIcon icon={PieChartIcon} size={22} />, href: '/reports' },
+    {
+      label: t('nav.settings'), icon: <HugeiconsIcon icon={Settings04Icon} size={22} />, href: '/settings',
+      children: [
+        { label: t('nav.preferences'), href: '/settings/preferences' },
+        { label: t('nav.sync'), href: '/settings/sync' },
+        { label: t('nav.themes'), href: '/settings/themes' },
+        { label: t('nav.loginSample'), href: '/settings/login-sample' },
+      ],
+    },
+  ];
+}
 
 // Nav items with onClick handlers wired to navigate
-function useNavItems(onNavigate: (path: string) => void): NavItem[] {
-  return navItems.map((item) => ({
-    ...item,
-    onClick: () => onNavigate(item.href),
-    children: item.children?.map((child) => ({
-      ...child,
-      onClick: () => onNavigate(child.href),
-    })),
-  }));
+function useNavItems(t: (key: string) => string, onNavigate: (path: string) => void): NavItem[] {
+  return useMemo(() => {
+    const items = buildNavItems(t);
+    return items.map((item) => ({
+      ...item,
+      onClick: () => onNavigate(item.href),
+      children: item.children?.map((child) => ({
+        ...child,
+        onClick: () => onNavigate(child.href),
+      })),
+    }));
+  }, [t, onNavigate]);
 }
 
 export default function App() {
+  const { t, i18n } = useTranslation();
   const [activePath, setActivePath] = useState('/dashboard');
   const [primaryColor, setPrimaryColor] = useState(DEFAULT_PRIMARY);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
@@ -195,12 +190,19 @@ export default function App() {
   const [activeThemeId, setActiveThemeId] = useState<string | null>(loadActiveThemeId);
   const [colorMode, setColorMode] = useState<ColorMode>(loadColorMode);
   const prefersDark = useMediaQuery('(prefers-color-scheme: dark)');
-  const wiredNavItems = useNavItems(setActivePath);
+  const wiredNavItems = useNavItems(t, setActivePath);
 
   const resolvedMode: 'light' | 'dark' =
     colorMode === 'system' ? (prefersDark ? 'dark' : 'light') : colorMode;
 
-  const theme = useMemo(() => buildTheme(primaryColor, resolvedMode), [primaryColor, resolvedMode]);
+  const direction: 'ltr' | 'rtl' = RTL_LANGUAGES.includes(i18n.language) ? 'rtl' : 'ltr';
+  const theme = useMemo(() => buildTheme(primaryColor, resolvedMode, direction), [primaryColor, resolvedMode, direction]);
+  const emotionCache = direction === 'rtl' ? rtlCache : ltrCache;
+
+  // Set document direction for RTL languages
+  useEffect(() => {
+    document.dir = direction;
+  }, [direction]);
 
   const handleColorModeChange = useCallback((mode: ColorMode) => {
     setColorMode(mode);
@@ -210,10 +212,10 @@ export default function App() {
   // Apply active theme on mount
   useEffect(() => {
     if (activeThemeId) {
-      const t = savedThemes.find((s) => s.id === activeThemeId);
-      if (t) {
-        setPrimaryColor(t.primaryColor);
-        if (t.logoDataUrl) setLogoUrl(t.logoDataUrl);
+      const saved = savedThemes.find((s) => s.id === activeThemeId);
+      if (saved) {
+        setPrimaryColor(saved.primaryColor);
+        if (saved.logoDataUrl) setLogoUrl(saved.logoDataUrl);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -250,92 +252,66 @@ export default function App() {
     }
   }, [activeThemeId]);
 
+  // Route content
+  const activeTheme = savedThemes.find((s) => s.id === activeThemeId);
+
+  let content: React.ReactNode;
   if (activePath === '/settings/preferences') {
-    return (
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <PreferencesView
-          navItems={wiredNavItems}
-          onNavigate={setActivePath}
-          colorMode={colorMode}
-          onColorModeChange={handleColorModeChange}
-        />
-      </ThemeProvider>
+    content = (
+      <PreferencesView
+        navItems={wiredNavItems}
+        onNavigate={setActivePath}
+        colorMode={colorMode}
+        onColorModeChange={handleColorModeChange}
+        logoUrl={logoUrl ?? undefined}
+      />
     );
-  }
-
-  if (activePath === '/inventory/stock') {
-    return (
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <StockView navItems={wiredNavItems} onNavigate={setActivePath} />
-      </ThemeProvider>
+  } else if (activePath === '/inventory/stock') {
+    content = <StockView navItems={wiredNavItems} onNavigate={setActivePath} />;
+  } else if (activePath === '/replenishment/goods-received') {
+    content = <GoodsReceivedView navItems={wiredNavItems} onNavigate={setActivePath} />;
+  } else if (activePath === '/settings/themes') {
+    content = (
+      <ThemeEditorView
+        navItems={wiredNavItems}
+        onNavigate={setActivePath}
+        onPrimaryColorChange={handlePrimaryColorChange}
+        onLogoChange={handleLogoChange}
+        initialPrimaryColor={primaryColor}
+        savedThemes={savedThemes}
+        activeThemeId={activeThemeId}
+        onSaveTheme={handleSaveTheme}
+        onDeleteTheme={handleDeleteTheme}
+      />
     );
-  }
-
-  if (activePath === '/replenishment/goods-received') {
-    return (
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <GoodsReceivedView navItems={wiredNavItems} onNavigate={setActivePath} />
-      </ThemeProvider>
+  } else if (activePath === '/settings/login-sample') {
+    content = (
+      <LoginSampleView
+        navItems={wiredNavItems}
+        onNavigate={setActivePath}
+        primaryColor={primaryColor}
+        secondaryColor={activeTheme?.secondaryColor ?? '#FF8800'}
+        logoUrl={logoUrl}
+      />
     );
-  }
-
-  if (activePath === '/settings/themes') {
-    return (
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <ThemeEditorView
-          navItems={wiredNavItems}
-          onNavigate={setActivePath}
-          onPrimaryColorChange={handlePrimaryColorChange}
-          onLogoChange={handleLogoChange}
-          initialPrimaryColor={primaryColor}
-          savedThemes={savedThemes}
-          activeThemeId={activeThemeId}
-          onSaveTheme={handleSaveTheme}
-          onDeleteTheme={handleDeleteTheme}
-        />
-      </ThemeProvider>
-    );
-  }
-
-  if (activePath === '/settings/login-sample') {
-    const activeTheme = savedThemes.find((s) => s.id === activeThemeId);
-    return (
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <LoginSampleView
-          navItems={wiredNavItems}
-          onNavigate={setActivePath}
-          primaryColor={primaryColor}
-          secondaryColor={activeTheme?.secondaryColor ?? '#FF8800'}
-          logoUrl={logoUrl}
-        />
-      </ThemeProvider>
-    );
-  }
-
-  return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+  } else {
+    content = (
       <NavLayout
         navItems={wiredNavItems}
         activePath={activePath}
         logoUrl={logoUrl ?? undefined}
         headerProps={{
-          title: 'Dashboard',
+          title: t('nav.dashboard'),
           primaryAction: undefined,
           comboActions: [
             {
               icon: <HugeiconsIcon icon={PrinterIcon} size={20} />,
-              label: 'Print',
+              label: t('common.print'),
               onClick: () => {},
             },
             {
               icon: <HugeiconsIcon icon={HelpCircleIcon} size={20} />,
-              label: 'Help',
+              label: t('common.help'),
               onClick: () => {},
             },
           ],
@@ -343,12 +319,21 @@ export default function App() {
         footerProps={{
           storeName: 'Central Tamaki Warehouse',
           userName: 'Mark Prins',
-          syncedAt: 'Synced 3 mins ago',
+          syncedAt: t('footer.syncedAgo', { time: '3 mins' }),
           isOnline: true,
         }}
       >
         <div />
       </NavLayout>
-    </ThemeProvider>
+    );
+  }
+
+  return (
+    <CacheProvider value={emotionCache}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        {content}
+      </ThemeProvider>
+    </CacheProvider>
   );
 }
