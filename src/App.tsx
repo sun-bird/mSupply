@@ -36,7 +36,7 @@ import type { SavedTheme } from './views/ThemeEditorView';
 const DEFAULT_PRIMARY = '#E95C30';
 const STORAGE_THEMES = 'msupply-themes';
 const STORAGE_THEMES_VERSION = 'msupply-themes-version';
-const THEMES_VERSION = '2';
+const THEMES_VERSION = '3';
 const STORAGE_ACTIVE = 'msupply-active-theme-id';
 const STORAGE_COLOR_MODE = 'msupply-color-mode';
 
@@ -64,9 +64,12 @@ const DEFAULT_THEMES: SavedTheme[] = [
   { id: 'default-salud', themeName: 'Salud', primaryColor: '#32B1A5', secondaryColor: '#FF8800', logoDataUrl: null },
   { id: 'default-fiji', themeName: 'Fiji', primaryColor: '#005D62', secondaryColor: '#FF8800', logoDataUrl: null },
   { id: 'default-nigeria', themeName: 'Nigeria', primaryColor: '#008751', secondaryColor: '#FF8800', logoDataUrl: null },
-  { id: 'default-hiviz-blue', themeName: 'Hiviz Blue (Light & Dark mode)', primaryColor: '#1E40AF', secondaryColor: '#FF8800', logoDataUrl: null },
-  { id: 'default-hiviz-green', themeName: 'Hiviz Green (Light & Dark mode)', primaryColor: '#05A660', secondaryColor: '#FF8800', logoDataUrl: null },
-  { id: 'default-hiviz-purple', themeName: 'Hiviz Purple (light only)', primaryColor: '#7C3AED', secondaryColor: '#FF8800', logoDataUrl: null },
+  { id: 'default-hiviz-blue-ld', themeName: 'HiViz Blue (light & dark)', primaryColor: '#3E7BFA', secondaryColor: '#FF8800', logoDataUrl: null },
+  { id: 'default-hiviz-green-ld', themeName: 'HiViz Green (light & dark)', primaryColor: '#05A660', secondaryColor: '#FF8800', logoDataUrl: null },
+  { id: 'default-hiviz-amber-ld', themeName: 'HiViz Amber (light & dark)', primaryColor: '#D97706', secondaryColor: '#FF8800', logoDataUrl: null },
+  { id: 'default-hiviz-blue-lo', themeName: 'HiViz Blue (light only)', primaryColor: '#1E40AF', secondaryColor: '#FF8800', logoDataUrl: null },
+  { id: 'default-hiviz-green-lo', themeName: 'HiViz Green (light only)', primaryColor: '#047857', secondaryColor: '#FF8800', logoDataUrl: null },
+  { id: 'default-hiviz-purple-lo', themeName: 'HiViz Purple (light only)', primaryColor: '#7C3AED', secondaryColor: '#FF8800', logoDataUrl: null },
 ];
 
 const THEME_LOGOS: Record<string, string> = {
