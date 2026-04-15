@@ -1,6 +1,6 @@
 import { HelpCircleIcon, PrinterIcon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { Box, Typography, useTheme } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { NavLayout } from '../components/nav-layout';
 import type { NavItem } from '../components/nav-layout';
@@ -24,7 +24,6 @@ const STEP_META: Record<string, { titleKey: string; descriptionKey: string }> = 
 
 export default function TenderStateView({ navItems, onNavigate, tender }: TenderStateViewProps) {
   const { t } = useTranslation();
-  const theme = useTheme();
   const steps = getTenderSteps(tender.status);
 
   return (
