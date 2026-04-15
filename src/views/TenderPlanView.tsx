@@ -34,6 +34,7 @@ interface TenderPlanViewProps {
   navItems: NavItem[];
   onNavigate: (path: string) => void;
   tender: TenderRow;
+  logoUrl?: string;
 }
 
 function randomDate(): string {
@@ -111,7 +112,7 @@ function FormRow({ label, children, fullWidth }: FormRowProps) {
   );
 }
 
-export default function TenderPlanView({ navItems, onNavigate, tender }: TenderPlanViewProps) {
+export default function TenderPlanView({ navItems, onNavigate, tender, logoUrl }: TenderPlanViewProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const primaryColor = theme.palette.primary.main;
@@ -145,6 +146,7 @@ export default function TenderPlanView({ navItems, onNavigate, tender }: TenderP
     <NavLayout
       navItems={navItems}
       activePath="/replenishment/tenders"
+      logoUrl={logoUrl}
       headerProps={{
         title: `${tender.serial} > ${tender.description}`,
         afterTitle: (
@@ -154,12 +156,13 @@ export default function TenderPlanView({ navItems, onNavigate, tender }: TenderP
                 plan: '/replenishment/tenders/plan',
                 items: '/replenishment/tenders/items',
                 source: '/replenishment/tenders/source',
+                evaluate: '/replenishment/tenders/evaluate',
               };
               const activeIndex = 0; // plan is first
               const isActive = step === 'plan';
               const isCompleted = i < activeIndex;
               const isNavigable = step in stepRoutes;
-              const color = isActive ? primaryColor : '#555770';
+              const color = isActive ? primaryColor : theme.palette.text.secondary;
               return (
                 <Box
                   key={step}

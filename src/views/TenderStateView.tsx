@@ -12,6 +12,7 @@ interface TenderStateViewProps {
   navItems: NavItem[];
   onNavigate: (path: string) => void;
   tender: TenderRow;
+  logoUrl?: string;
 }
 
 const STEP_META: Record<string, { titleKey: string; descriptionKey: string }> = {
@@ -22,7 +23,7 @@ const STEP_META: Record<string, { titleKey: string; descriptionKey: string }> = 
   award: { titleKey: 'tenderState.award', descriptionKey: 'tenderState.awardDescription' },
 };
 
-export default function TenderStateView({ navItems, onNavigate, tender }: TenderStateViewProps) {
+export default function TenderStateView({ navItems, onNavigate, tender, logoUrl }: TenderStateViewProps) {
   const { t } = useTranslation();
   const steps = getTenderSteps(tender.status);
 
@@ -30,6 +31,7 @@ export default function TenderStateView({ navItems, onNavigate, tender }: Tender
     <NavLayout
       navItems={navItems}
       activePath="/replenishment/tenders"
+      logoUrl={logoUrl}
       headerProps={{
         title: `${tender.serial} > ${tender.description}`,
         onBack: () => onNavigate('/replenishment/tenders'),
@@ -63,6 +65,8 @@ export default function TenderStateView({ navItems, onNavigate, tender }: Tender
                   onNavigate('/replenishment/tenders/items');
                 } else if (step.key === 'source') {
                   onNavigate('/replenishment/tenders/source');
+                } else if (step.key === 'evaluate') {
+                  onNavigate('/replenishment/tenders/evaluate');
                 }
               }}
               {...(isAward && {

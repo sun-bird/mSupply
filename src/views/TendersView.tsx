@@ -65,9 +65,10 @@ interface TendersViewProps {
   navItems: NavItem[];
   onNavigate: (path: string) => void;
   onSelectTender: (tender: TenderRow) => void;
+  logoUrl?: string;
 }
 
-export default function TendersView({ navItems, onNavigate, onSelectTender }: TendersViewProps) {
+export default function TendersView({ navItems, onNavigate, onSelectTender, logoUrl }: TendersViewProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const primaryColor = theme.palette.primary.main;
@@ -125,6 +126,7 @@ export default function TendersView({ navItems, onNavigate, onSelectTender }: Te
     <NavLayout
       navItems={navItems}
       activePath="/replenishment/tenders"
+      logoUrl={logoUrl}
       headerProps={{
         title: t('tenders.title'),
         onBack: () => onNavigate('/dashboard'),
@@ -153,7 +155,18 @@ export default function TendersView({ navItems, onNavigate, onSelectTender }: Te
       }}
     >
       {/* Status Filter Cards */}
-      <Box sx={{ display: 'flex', gap: '10px', mb: 3, overflowX: 'auto', pb: 1 }}>
+      <Box sx={{
+        display: 'flex',
+        gap: '10px',
+        mb: 3,
+        overflowX: 'auto',
+        pb: 1,
+        '&::-webkit-scrollbar': { height: 6 },
+        '&::-webkit-scrollbar-track': { bgcolor: 'action.hover', borderRadius: 3 },
+        '&::-webkit-scrollbar-thumb': { bgcolor: 'text.disabled', borderRadius: 3 },
+        scrollbarColor: (t: any) => `${t.palette.text.disabled} ${t.palette.action.hover}`,
+        scrollbarWidth: 'thin',
+      }}>
         {statusFilters.map((filter) => {
           const isActive = activeFilter === filter.key;
           return (
@@ -264,7 +277,16 @@ export default function TendersView({ navItems, onNavigate, onSelectTender }: Te
       </Box>
 
       {/* Data Table */}
-      <Box sx={{ bgcolor: 'background.paper', borderRadius: '10px' }}>
+      <Box sx={{
+        bgcolor: 'background.paper',
+        borderRadius: '10px',
+        overflow: 'auto',
+        '&::-webkit-scrollbar': { height: 8, width: 8 },
+        '&::-webkit-scrollbar-track': { bgcolor: 'action.hover', borderRadius: 4 },
+        '&::-webkit-scrollbar-thumb': { bgcolor: 'text.disabled', borderRadius: 4 },
+        scrollbarColor: (t: any) => `${t.palette.text.disabled} ${t.palette.action.hover}`,
+        scrollbarWidth: 'thin',
+      }}>
         <TableContainer>
           <Table size="small" sx={{ fontFamily: 'Inter, sans-serif' }}>
             <TableHead>

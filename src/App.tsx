@@ -31,6 +31,7 @@ import type { TenderRow } from './views/TendersView';
 import TenderItemsView from './views/TenderItemsView';
 import TenderPlanView from './views/TenderPlanView';
 import TenderSourceView from './views/TenderSourceView';
+import TenderEvaluateView from './views/TenderEvaluateView';
 import TenderStateView from './views/TenderStateView';
 import ThemeEditorView from './views/ThemeEditorView';
 import type { SavedTheme } from './views/ThemeEditorView';
@@ -350,15 +351,17 @@ export default function App() {
   } else if (activePath === '/replenishment/goods-received') {
     content = <GoodsReceivedView navItems={wiredNavItems} onNavigate={setActivePath} />;
   } else if (activePath === '/replenishment/tenders/plan' && selectedTender) {
-    content = <TenderPlanView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} />;
+    content = <TenderPlanView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} logoUrl={logoUrl ?? undefined} />;
   } else if (activePath === '/replenishment/tenders/items' && selectedTender) {
-    content = <TenderItemsView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} />;
+    content = <TenderItemsView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} logoUrl={logoUrl ?? undefined} />;
   } else if (activePath === '/replenishment/tenders/source' && selectedTender) {
-    content = <TenderSourceView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} />;
+    content = <TenderSourceView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} logoUrl={logoUrl ?? undefined} />;
+  } else if (activePath === '/replenishment/tenders/evaluate' && selectedTender) {
+    content = <TenderEvaluateView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} logoUrl={logoUrl ?? undefined} />;
   } else if (activePath === '/replenishment/tenders/detail' && selectedTender) {
-    content = <TenderStateView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} />;
+    content = <TenderStateView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} logoUrl={logoUrl ?? undefined} />;
   } else if (activePath === '/replenishment/tenders') {
-    content = <TendersView navItems={wiredNavItems} onNavigate={setActivePath} onSelectTender={setSelectedTender} />;
+    content = <TendersView navItems={wiredNavItems} onNavigate={setActivePath} onSelectTender={setSelectedTender} logoUrl={logoUrl ?? undefined} />;
   } else if (activePath === '/settings/themes') {
     content = (
       <ThemeEditorView

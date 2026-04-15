@@ -142,6 +142,25 @@
     "commentsInternal": "Comments (Internal)",
     "commentPlaceholder": "Add a comment..."
   },
+  "tenderEvaluate": {
+    "title": "Evaluate",
+    "bidsReceived": "{{received}} out of {{total}} bids received.",
+    "evaluateBids": "Evaluate Bids",
+    "itemNumber": "Item Number",
+    "itemCode": "Item Code",
+    "itemName": "Item Name",
+    "numberOfPacks": "Number of Packs",
+    "packSize": "Pack Size",
+    "totalQuantity": "Total Quantity",
+    "suppliers": "Suppliers",
+    "estimatedDelivery": "Estimated Delivery",
+    "totalCost": "Total Cost",
+    "acceptableSuppliers": "Acceptable Suppliers",
+    "supplierSelected": "Supplier Selected",
+    "notEvaluated": "Not Evaluated",
+    "search": "Search...",
+    "showAll": "Show All"
+  },
   "themeEditor": {
     "title": "Theme Editor",
     "createTheme": "Create Theme",
