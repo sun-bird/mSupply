@@ -60,6 +60,23 @@
     "expires": "Expires",
     "noTendersFound": "No tenders found."
   },
+  "tenderState": {
+    "title": "Tender State",
+    "plan": "Plan",
+    "planDescription": "Tender criteria and documents",
+    "items": "Items",
+    "itemsDescription": "Manage which items are in your tender",
+    "source": "Source",
+    "sourceDescription": "Invite suppliers to make a bid",
+    "evaluate": "Evaluate",
+    "evaluateDescription": "Evaluate bids from suppliers",
+    "award": "Award",
+    "awardDescription": "Award purchase orders to winning suppliers",
+    "view": "View",
+    "finaliseTender": "Finalise Tender",
+    "tenderCreated": "Tender Created {{date}}.",
+    "viewLog": "View Log"
+  },
   "themeEditor": {
     "title": "Theme Editor",
     "createTheme": "Create Theme",

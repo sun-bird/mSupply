@@ -30,7 +30,7 @@ import { useTranslation } from 'react-i18next';
 import { NavLayout } from '../components/nav-layout';
 import type { NavItem } from '../components/nav-layout';
 
-interface TenderRow {
+export interface TenderRow {
   serial: string;
   status: string;
   method: string;
@@ -63,9 +63,10 @@ const statusColors: Record<string, { dot: string; bg: string }> = {
 interface TendersViewProps {
   navItems: NavItem[];
   onNavigate: (path: string) => void;
+  onSelectTender: (tender: TenderRow) => void;
 }
 
-export default function TendersView({ navItems, onNavigate }: TendersViewProps) {
+export default function TendersView({ navItems, onNavigate, onSelectTender }: TendersViewProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const primaryColor = theme.palette.primary.main;
@@ -283,6 +284,10 @@ export default function TendersView({ navItems, onNavigate }: TendersViewProps) 
                   <TableRow
                     key={idx}
                     hover
+                    onClick={() => {
+                      onSelectTender(row);
+                      onNavigate('/replenishment/tenders/detail');
+                    }}
                     sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'action.hover' } }}
                   >
                     <TableCell padding="checkbox" sx={{ py: 1.5 }}>

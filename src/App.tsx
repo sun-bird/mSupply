@@ -27,6 +27,8 @@ import PreferencesView from './views/PreferencesView';
 import type { ColorMode } from './views/PreferencesView';
 import StockView from './views/StockView';
 import TendersView from './views/TendersView';
+import type { TenderRow } from './views/TendersView';
+import TenderStateView from './views/TenderStateView';
 import ThemeEditorView from './views/ThemeEditorView';
 import type { SavedTheme } from './views/ThemeEditorView';
 
@@ -234,6 +236,7 @@ function useNavItems(t: (key: string) => string, onNavigate: (path: string) => v
 export default function App() {
   const { t, i18n } = useTranslation();
   const [activePath, setActivePath] = useState('/dashboard');
+  const [selectedTender, setSelectedTender] = useState<TenderRow | null>(null);
   const [primaryColor, setPrimaryColor] = useState(DEFAULT_PRIMARY);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [savedThemes, setSavedThemes] = useState<SavedTheme[]>(loadSavedThemes);
@@ -328,8 +331,10 @@ export default function App() {
     content = <StockView navItems={wiredNavItems} onNavigate={setActivePath} />;
   } else if (activePath === '/replenishment/goods-received') {
     content = <GoodsReceivedView navItems={wiredNavItems} onNavigate={setActivePath} />;
+  } else if (activePath === '/replenishment/tenders/detail' && selectedTender) {
+    content = <TenderStateView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} />;
   } else if (activePath === '/replenishment/tenders') {
-    content = <TendersView navItems={wiredNavItems} onNavigate={setActivePath} />;
+    content = <TendersView navItems={wiredNavItems} onNavigate={setActivePath} onSelectTender={setSelectedTender} />;
   } else if (activePath === '/settings/themes') {
     content = (
       <ThemeEditorView
