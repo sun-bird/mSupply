@@ -16,6 +16,7 @@ import {
   IconButton,
   InputAdornment,
   InputBase,
+  SvgIcon,
   Table,
   TableBody,
   TableCell,
@@ -30,6 +31,12 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLayout } from '../components/nav-layout';
 import type { NavItem } from '../components/nav-layout';
+
+const ThinCheckboxIcon = () => (
+  <SvgIcon sx={{ fontSize: 18 }}>
+    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" fill="none" stroke="currentColor" strokeWidth="1.5" />
+  </SvgIcon>
+);
 
 export interface TenderRow {
   serial: string;
@@ -292,7 +299,7 @@ export default function TendersView({ navItems, onNavigate, onSelectTender, logo
             <TableHead>
               <TableRow>
                 <TableCell padding="checkbox" sx={{ borderBottom: '1px solid', borderColor: 'divider', py: '10px' }}>
-                  <Checkbox size="small" sx={{ color: '#3E7BFA', '&.Mui-checked': { color: '#3E7BFA' }, '& .MuiSvgIcon-root': { fontSize: 18 } }} />
+                  <Checkbox size="small" icon={<ThinCheckboxIcon />} sx={{ color: '#3E7BFA', '&.Mui-checked': { color: '#3E7BFA' }, '& .MuiSvgIcon-root': { fontSize: 18 } }} />
                 </TableCell>
                 <TableCell sx={{ width: 40, borderBottom: '1px solid', borderColor: 'divider', py: '10px' }} />
                 {[
@@ -351,6 +358,7 @@ export default function TendersView({ navItems, onNavigate, onSelectTender, logo
                     <TableCell padding="checkbox" sx={{ py: '10px' }}>
                       <Checkbox
                         size="small"
+                        icon={<ThinCheckboxIcon />}
                         checked={checkedRows.has(idx)}
                         onChange={(e) => { e.stopPropagation(); setCheckedRows((prev) => { const next = new Set(prev); if (next.has(idx)) next.delete(idx); else next.add(idx); return next; }); }}
                         sx={{ color: '#3E7BFA', '&.Mui-checked': { color: '#3E7BFA' }, '& .MuiSvgIcon-root': { fontSize: 18 } }}

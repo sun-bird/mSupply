@@ -1,8 +1,6 @@
 import {
   AddCircleIcon,
   ArrowDown01Icon,
-  CheckmarkCircle01Icon,
-  CircleIcon,
   Comment01Icon,
   EyeIcon,
   HelpCircleIcon,
@@ -19,6 +17,7 @@ import {
   IconButton,
   InputAdornment,
   InputBase,
+  SvgIcon,
   Table,
   TableBody,
   TableCell,
@@ -31,8 +30,15 @@ import {
 } from '@mui/material';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
+const ThinCheckboxIcon = () => (
+  <SvgIcon sx={{ fontSize: 18 }}>
+    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" fill="none" stroke="currentColor" strokeWidth="1.5" />
+  </SvgIcon>
+);
 import { NavLayout } from '../components/nav-layout';
 import type { NavItem } from '../components/nav-layout';
+import StatusController from '../components/tender/StatusController';
 import SupplierSidebar from '../components/tender/SupplierSidebar';
 import type { Supplier } from '../components/tender/SupplierSidebar';
 import type { TenderRow } from './TendersView';
@@ -115,41 +121,7 @@ export default function TenderSourceView({ navItems, onNavigate, tender, logoUrl
       logoUrl={logoUrl}
       headerProps={{
         title: `${tender.serial} > ${tender.description}`,
-        afterTitle: (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px', ml: 2 }}>
-            {(['plan', 'items', 'source', 'evaluate', 'award'] as const).map((step, i, steps) => {
-              const stepRoutes: Record<string, string> = {
-                plan: '/replenishment/tenders/plan',
-                items: '/replenishment/tenders/items',
-                source: '/replenishment/tenders/source',
-                evaluate: '/replenishment/tenders/evaluate',
-              };
-              const activeIndex = steps.indexOf('source');
-              const isActive = step === 'source';
-              const isCompleted = i < activeIndex;
-              const isNavigable = step in stepRoutes;
-              const color = isActive ? primaryColor : theme.palette.text.secondary;
-              return (
-                <Box
-                  key={step}
-                  onClick={isNavigable && !isActive ? () => onNavigate(stepRoutes[step]) : undefined}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 0.5,
-                    cursor: isNavigable && !isActive ? 'pointer' : 'default',
-                    '&:hover': isNavigable && !isActive ? { opacity: 0.7 } : {},
-                  }}
-                >
-                  <HugeiconsIcon icon={isCompleted || isActive ? CheckmarkCircle01Icon : CircleIcon} size={12} color={color} />
-                  <Typography sx={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: isActive ? 600 : 400, color }}>
-                    {t(`tenderState.${step}`)}
-                  </Typography>
-                </Box>
-              );
-            })}
-          </Box>
-        ),
+        afterTitle: <StatusController activeStep="source" onNavigate={onNavigate} />,
         onBack: () => onNavigate('/replenishment/tenders/detail'),
         primaryAction: {
           label: t('tenderSource.addSupplier'),
@@ -237,7 +209,7 @@ export default function TenderSourceView({ navItems, onNavigate, tender, logoUrl
                 <TableHead>
                   <TableRow>
                     <TableCell padding="checkbox" sx={{ borderBottom: '1px solid', borderColor: 'divider', py: '10px' }}>
-                      <Checkbox size="small" sx={{ color: '#3E7BFA', '&.Mui-checked': { color: '#3E7BFA' }, '& .MuiSvgIcon-root': { fontSize: 18 } }} />
+                      <Checkbox size="small" icon={<ThinCheckboxIcon />} sx={{ color: '#3E7BFA', '&.Mui-checked': { color: '#3E7BFA' }, '& .MuiSvgIcon-root': { fontSize: 18 } }} />
                     </TableCell>
                     {columns.map((col) => (
                       <TableCell
@@ -287,6 +259,7 @@ export default function TenderSourceView({ navItems, onNavigate, tender, logoUrl
                         <TableCell padding="checkbox" sx={{ py: '10px' }}>
                           <Checkbox
                             size="small"
+                            icon={<ThinCheckboxIcon />}
                             checked={checkedCodes.has(supplier.code)}
                             sx={{ color: '#3E7BFA', '&.Mui-checked': { color: '#3E7BFA' }, '& .MuiSvgIcon-root': { fontSize: 18 } }}
                             onClick={(e) => {

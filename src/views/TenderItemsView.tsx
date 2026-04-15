@@ -1,8 +1,6 @@
 import {
   AddCircleIcon,
   ArrowDown01Icon,
-  CheckmarkCircle01Icon,
-  CircleIcon,
   EyeIcon,
   HelpCircleIcon,
   MoreHorizontalIcon,
@@ -18,6 +16,7 @@ import {
   IconButton,
   InputAdornment,
   InputBase,
+  SvgIcon,
   Table,
   TableBody,
   TableCell,
@@ -31,7 +30,14 @@ import {
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLayout } from '../components/nav-layout';
+
+const ThinCheckboxIcon = () => (
+  <SvgIcon sx={{ fontSize: 18 }}>
+    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" fill="none" stroke="currentColor" strokeWidth="1.5" />
+  </SvgIcon>
+);
 import type { NavItem } from '../components/nav-layout';
+import StatusController from '../components/tender/StatusController';
 import type { TenderRow } from './TendersView';
 
 interface TenderItem {
@@ -47,13 +53,13 @@ interface TenderItem {
 }
 
 const MOCK_ITEMS: TenderItem[] = [
-  { itemNumber: '123', itemCode: 'M-002523', itemName: 'Acipimox - Cap 250 mg', numberOfPacks: 10, packSize: 50, totalQuantity: 500, unitType: 90, productSpecifications: 'Abc', conditions: 'Abc' },
-  { itemNumber: '123', itemCode: 'M-002523', itemName: 'Ajmaline - Inj 5 mg per ml, 10 ml ampoule', numberOfPacks: 10, packSize: 50, totalQuantity: 500, unitType: 90, productSpecifications: 'Abc', conditions: 'Abc' },
-  { itemNumber: '123', itemCode: 'M-002523', itemName: 'Atorvastatin - Tab 10 mg', numberOfPacks: 10, packSize: 50, totalQuantity: 500, unitType: 90, productSpecifications: 'Abc', conditions: 'Abc' },
-  { itemNumber: '123', itemCode: 'M-002523', itemName: 'Cilazapril - Tab 5 mg', numberOfPacks: 10, packSize: 50, totalQuantity: 500, unitType: 90, productSpecifications: 'Abc', conditions: 'Abc' },
-  { itemNumber: '123', itemCode: 'M-002523', itemName: 'Clonidine hydrochloride - Tab 25 mcg', numberOfPacks: 10, packSize: 50, totalQuantity: 500, unitType: 90, productSpecifications: 'Abc', conditions: 'Abc' },
-  { itemNumber: '123', itemCode: 'M-002523', itemName: 'Isosorbide mononitrate - Tab 20 mg', numberOfPacks: 10, packSize: 50, totalQuantity: 500, unitType: 90, productSpecifications: 'Abc', conditions: 'Abc' },
-  { itemNumber: '123', itemCode: 'M-002523', itemName: 'Omeprazole powder for oral suspension 2 mg per mL', numberOfPacks: 5, packSize: 90, totalQuantity: 450, unitType: 90, productSpecifications: 'Abc', conditions: 'Abc' },
+  { itemNumber: '101', itemCode: 'M-002523', itemName: 'Acipimox - Cap 250 mg', numberOfPacks: 10, packSize: 50, totalQuantity: 500, unitType: 28, productSpecifications: 'Abc', conditions: 'Abc' },
+  { itemNumber: '102', itemCode: 'M-003841', itemName: 'Ajmaline - Inj 5 mg per ml, 10 ml ampoule', numberOfPacks: 20, packSize: 25, totalQuantity: 500, unitType: 14, productSpecifications: 'Abc', conditions: 'Abc' },
+  { itemNumber: '103', itemCode: 'M-001297', itemName: 'Atorvastatin - Tab 10 mg', numberOfPacks: 15, packSize: 100, totalQuantity: 1500, unitType: 30, productSpecifications: 'Abc', conditions: 'Abc' },
+  { itemNumber: '104', itemCode: 'M-004510', itemName: 'Cilazapril - Tab 5 mg', numberOfPacks: 8, packSize: 30, totalQuantity: 240, unitType: 28, productSpecifications: 'Abc', conditions: 'Abc' },
+  { itemNumber: '105', itemCode: 'M-002198', itemName: 'Clonidine hydrochloride - Tab 25 mcg', numberOfPacks: 12, packSize: 60, totalQuantity: 720, unitType: 56, productSpecifications: 'Abc', conditions: 'Abc' },
+  { itemNumber: '106', itemCode: 'M-003672', itemName: 'Isosorbide mononitrate - Tab 20 mg', numberOfPacks: 25, packSize: 28, totalQuantity: 700, unitType: 30, productSpecifications: 'Abc', conditions: 'Abc' },
+  { itemNumber: '107', itemCode: 'M-005034', itemName: 'Omeprazole powder for oral suspension 2 mg per mL', numberOfPacks: 5, packSize: 90, totalQuantity: 450, unitType: 7, productSpecifications: 'Abc', conditions: 'Abc' },
 ];
 
 interface TenderItemsViewProps {
@@ -104,9 +110,9 @@ export default function TenderItemsView({ navItems, onNavigate, tender, logoUrl 
 
   const columns = [
     { key: 'itemNumber', label: t('tenderItems.itemNumber') },
-    { key: 'itemCode', label: t('tenderItems.itemCode') },
+    { key: 'itemCode', label: t('tenderItems.itemCode'), minWidth: 100 },
     { key: 'itemName', label: t('tenderItems.itemName'), minWidth: 200 },
-    { key: 'numberOfPacks', label: t('tenderItems.numberOfPacks') },
+    { key: 'numberOfPacks', label: t('tenderItems.numberOfPacks'), minWidth: 115 },
     { key: 'packSize', label: t('tenderItems.packSize') },
     { key: 'totalQuantity', label: t('tenderItems.totalQuantity') },
     { key: 'unitType', label: t('tenderItems.unitType') },
@@ -121,41 +127,7 @@ export default function TenderItemsView({ navItems, onNavigate, tender, logoUrl 
       logoUrl={logoUrl}
       headerProps={{
         title: `${tender.serial} > ${tender.description}`,
-        afterTitle: (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px', ml: 2 }}>
-            {(['plan', 'items', 'source', 'evaluate', 'award'] as const).map((step, i, steps) => {
-              const stepRoutes: Record<string, string> = {
-                plan: '/replenishment/tenders/plan',
-                items: '/replenishment/tenders/items',
-                source: '/replenishment/tenders/source',
-                evaluate: '/replenishment/tenders/evaluate',
-              };
-              const activeIndex = steps.indexOf('items');
-              const isActive = step === 'items';
-              const isCompleted = i < activeIndex;
-              const isNavigable = step in stepRoutes;
-              const color = isActive ? primaryColor : theme.palette.text.secondary;
-              return (
-                <Box
-                  key={step}
-                  onClick={isNavigable && !isActive ? () => onNavigate(stepRoutes[step]) : undefined}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 0.5,
-                    cursor: isNavigable && !isActive ? 'pointer' : 'default',
-                    '&:hover': isNavigable && !isActive ? { opacity: 0.7 } : {},
-                  }}
-                >
-                  <HugeiconsIcon icon={isCompleted || isActive ? CheckmarkCircle01Icon : CircleIcon} size={12} color={color} />
-                  <Typography sx={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: isActive ? 600 : 400, color }}>
-                    {t(`tenderState.${step}`)}
-                  </Typography>
-                </Box>
-              );
-            })}
-          </Box>
-        ),
+        afterTitle: <StatusController activeStep="items" onNavigate={onNavigate} />,
         onBack: () => onNavigate('/replenishment/tenders/detail'),
         primaryAction: {
           label: t('tenderItems.addItems'),
@@ -234,11 +206,11 @@ export default function TenderItemsView({ navItems, onNavigate, tender, logoUrl 
         scrollbarWidth: 'thin',
       }}>
         <TableContainer>
-          <Table size="small" sx={{ fontFamily: 'Inter, sans-serif' }}>
+          <Table size="small" sx={{ fontFamily: 'Inter, sans-serif', '& .MuiTableCell-root': { px: '5px' } }}>
             <TableHead>
               <TableRow>
                 <TableCell padding="checkbox" sx={{ borderBottom: '1px solid', borderColor: 'divider', py: '10px' }}>
-                  <Checkbox size="small" sx={{ color: '#3E7BFA', '&.Mui-checked': { color: '#3E7BFA' }, '& .MuiSvgIcon-root': { fontSize: 18 } }} />
+                  <Checkbox size="small" icon={<ThinCheckboxIcon />} sx={{ color: '#3E7BFA', '&.Mui-checked': { color: '#3E7BFA' }, '& .MuiSvgIcon-root': { fontSize: 18 } }} />
                 </TableCell>
                 <TableCell sx={{ width: 40, borderBottom: '1px solid', borderColor: 'divider', py: '10px' }} />
                 {columns.map((col) => (
@@ -278,6 +250,7 @@ export default function TenderItemsView({ navItems, onNavigate, tender, logoUrl 
                   <TableCell padding="checkbox" sx={{ py: '10px' }}>
                     <Checkbox
                       size="small"
+                      icon={<ThinCheckboxIcon />}
                       checked={checkedRows.has(idx)}
                       onChange={() => setCheckedRows((prev) => { const next = new Set(prev); if (next.has(idx)) next.delete(idx); else next.add(idx); return next; })}
                       sx={{ color: '#3E7BFA', '&.Mui-checked': { color: '#3E7BFA' }, '& .MuiSvgIcon-root': { fontSize: 18 } }}
@@ -336,7 +309,7 @@ export default function TenderItemsView({ navItems, onNavigate, tender, logoUrl 
       </Box>
 
       {/* Next Button */}
-      <Box sx={{ position: 'fixed', bottom: '100px', left: '50%', transform: 'translateX(-50%)', display: 'flex', zIndex: 5 }}>
+      <Box sx={{ position: 'fixed', bottom: 96, left: 220, right: 0, display: 'flex', justifyContent: 'center', zIndex: 5 }}>
         <Button
           variant="contained"
           onClick={() => onNavigate('/replenishment/tenders/detail')}
@@ -351,9 +324,12 @@ export default function TenderItemsView({ navItems, onNavigate, tender, logoUrl 
             px: 5,
             py: 1,
             boxShadow: '0px 1px 5px rgba(0,0,0,0.12), 0px 2px 2px rgba(0,0,0,0.14), 0px 3px 1px -2px rgba(0,0,0,0.2)',
+            transition: 'all 0.2s ease',
             '&:hover': {
               bgcolor: primaryColor,
-              boxShadow: '0px 2px 8px rgba(0,0,0,0.2)',
+              filter: 'brightness(1.15)',
+              boxShadow: '0px 4px 12px rgba(0,0,0,0.25)',
+              transform: 'translateY(-1px)',
             },
           }}
         >

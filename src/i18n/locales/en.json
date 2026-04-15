@@ -161,6 +161,26 @@
     "search": "Search...",
     "showAll": "Show All"
   },
+  "tenderAward": {
+    "title": "Award",
+    "itemsAwarded": "{{items}} items awarded to {{suppliers}} suppliers.",
+    "finaliseTender": "Finalise Tender",
+    "itemName": "Item Name",
+    "pack": "Pack",
+    "packSize": "Pack Size",
+    "totalQuantity": "Total Quantity",
+    "units": "Units",
+    "preferredSupplier": "Preferred Supplier",
+    "currency": "Currency",
+    "itemManufacturer": "Item Manufacturer",
+    "quotedPrice": "Quoted Price",
+    "quotedPackSize": "Quoted Pack Size",
+    "netCost": "Net Cost",
+    "adjCost": "Adj Cost",
+    "priceExtension": "Price Extension",
+    "search": "Search...",
+    "showAll": "Show All"
+  },
   "themeEditor": {
     "title": "Theme Editor",
     "createTheme": "Create Theme",

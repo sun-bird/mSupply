@@ -67,6 +67,8 @@ export default function TenderStateView({ navItems, onNavigate, tender, logoUrl 
                   onNavigate('/replenishment/tenders/source');
                 } else if (step.key === 'evaluate') {
                   onNavigate('/replenishment/tenders/evaluate');
+                } else if (step.key === 'award') {
+                  onNavigate('/replenishment/tenders/award');
                 }
               }}
               {...(isAward && {

@@ -1,8 +1,6 @@
 import {
   ArrowDown01Icon,
   Calendar03Icon,
-  CheckmarkCircle01Icon,
-  CircleIcon,
   HelpCircleIcon,
   InformationCircleIcon,
   NoteIcon,
@@ -28,6 +26,7 @@ import type { NavItem } from '../components/nav-layout';
 import DocumentDropZone from '../components/tender/DocumentDropZone';
 import DocumentList from '../components/tender/DocumentList';
 import type { TenderDocument } from '../components/tender/DocumentList';
+import StatusController from '../components/tender/StatusController';
 import type { TenderRow } from './TendersView';
 
 interface TenderPlanViewProps {
@@ -149,41 +148,7 @@ export default function TenderPlanView({ navItems, onNavigate, tender, logoUrl }
       logoUrl={logoUrl}
       headerProps={{
         title: `${tender.serial} > ${tender.description}`,
-        afterTitle: (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px', ml: 2 }}>
-            {(['plan', 'items', 'source', 'evaluate', 'award'] as const).map((step, i) => {
-              const stepRoutes: Record<string, string> = {
-                plan: '/replenishment/tenders/plan',
-                items: '/replenishment/tenders/items',
-                source: '/replenishment/tenders/source',
-                evaluate: '/replenishment/tenders/evaluate',
-              };
-              const activeIndex = 0; // plan is first
-              const isActive = step === 'plan';
-              const isCompleted = i < activeIndex;
-              const isNavigable = step in stepRoutes;
-              const color = isActive ? primaryColor : theme.palette.text.secondary;
-              return (
-                <Box
-                  key={step}
-                  onClick={isNavigable && !isActive ? () => onNavigate(stepRoutes[step]) : undefined}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 0.5,
-                    cursor: isNavigable && !isActive ? 'pointer' : 'default',
-                    '&:hover': isNavigable && !isActive ? { opacity: 0.7 } : {},
-                  }}
-                >
-                  <HugeiconsIcon icon={isCompleted || isActive ? CheckmarkCircle01Icon : CircleIcon} size={12} color={color} />
-                  <Typography sx={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: isActive ? 600 : 400, color }}>
-                    {t(`tenderState.${step}`)}
-                  </Typography>
-                </Box>
-              );
-            })}
-          </Box>
-        ),
+        afterTitle: <StatusController activeStep="plan" onNavigate={onNavigate} />,
         onBack: () => onNavigate('/replenishment/tenders/detail'),
         comboActions: [
           { icon: <HugeiconsIcon icon={PrinterIcon} size={20} />, label: t('common.print'), onClick: () => {} },

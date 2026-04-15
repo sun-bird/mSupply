@@ -32,6 +32,7 @@ import TenderItemsView from './views/TenderItemsView';
 import TenderPlanView from './views/TenderPlanView';
 import TenderSourceView from './views/TenderSourceView';
 import TenderEvaluateView from './views/TenderEvaluateView';
+import TenderAwardView from './views/TenderAwardView';
 import TenderStateView from './views/TenderStateView';
 import ThemeEditorView from './views/ThemeEditorView';
 import type { SavedTheme } from './views/ThemeEditorView';
@@ -347,7 +348,7 @@ export default function App() {
       />
     );
   } else if (activePath === '/inventory/stock') {
-    content = <StockView navItems={wiredNavItems} onNavigate={setActivePath} />;
+    content = <StockView navItems={wiredNavItems} onNavigate={setActivePath} logoUrl={logoUrl ?? undefined} />;
   } else if (activePath === '/replenishment/goods-received') {
     content = <GoodsReceivedView navItems={wiredNavItems} onNavigate={setActivePath} />;
   } else if (activePath === '/replenishment/tenders/plan' && selectedTender) {
@@ -358,6 +359,8 @@ export default function App() {
     content = <TenderSourceView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} logoUrl={logoUrl ?? undefined} />;
   } else if (activePath === '/replenishment/tenders/evaluate' && selectedTender) {
     content = <TenderEvaluateView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} logoUrl={logoUrl ?? undefined} />;
+  } else if (activePath === '/replenishment/tenders/award' && selectedTender) {
+    content = <TenderAwardView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} logoUrl={logoUrl ?? undefined} />;
   } else if (activePath === '/replenishment/tenders/detail' && selectedTender) {
     content = <TenderStateView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} logoUrl={logoUrl ?? undefined} />;
   } else if (activePath === '/replenishment/tenders') {

@@ -32,9 +32,10 @@ const statusColor = (s: string) =>
 interface StockViewProps {
   navItems: NavItem[];
   onNavigate: (path: string) => void;
+  logoUrl?: string;
 }
 
-export default function StockView({ navItems, onNavigate }: StockViewProps) {
+export default function StockView({ navItems, onNavigate, logoUrl }: StockViewProps) {
   const [modalOpen, setModalOpen] = useState(false);
 
   return (
@@ -43,12 +44,13 @@ export default function StockView({ navItems, onNavigate }: StockViewProps) {
       <NavLayout
         navItems={navItems}
         activePath="/inventory/stock"
+        logoUrl={logoUrl}
         headerProps={{
           title: 'Stock',
           onBack: () => onNavigate('/dashboard'),
           primaryAction: {
             label: 'Add Items',
-            icon: <HugeiconsIcon icon={AddCircleIcon} size={18} color="#E95C30" />,
+            icon: <HugeiconsIcon icon={AddCircleIcon} size={18} />,
             onClick: () => setModalOpen(true),
           },
           comboActions: [
@@ -81,7 +83,7 @@ export default function StockView({ navItems, onNavigate }: StockViewProps) {
                     sx={{
                       fontSize: 13,
                       fontWeight: 600,
-                      color: '#555770',
+                      color: 'text.secondary',
                       borderBottom: '1px solid',
                       borderColor: 'divider',
                       py: 1.5,
@@ -98,27 +100,27 @@ export default function StockView({ navItems, onNavigate }: StockViewProps) {
                 <TableRow
                   key={row.code}
                   hover
-                  sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'rgba(233,92,48,0.03)' } }}
+                  sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'action.hover' } }}
                 >
-                  <TableCell sx={{ fontSize: 14, color: '#3E7BFA', fontFamily: 'Inter, sans-serif', py: 1.5, fontWeight: 500 }}>
+                  <TableCell sx={{ fontSize: 14, color: 'primary.main', fontFamily: 'Inter, sans-serif', py: 1.5, fontWeight: 500 }}>
                     {row.code}
                   </TableCell>
-                  <TableCell sx={{ fontSize: 14, color: '#1C1C28', fontFamily: 'Inter, sans-serif', py: 1.5 }}>
+                  <TableCell sx={{ fontSize: 14, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: 1.5 }}>
                     {row.name}
                   </TableCell>
-                  <TableCell sx={{ fontSize: 14, color: '#555770', fontFamily: 'Inter, sans-serif', py: 1.5 }}>
+                  <TableCell sx={{ fontSize: 14, color: 'text.secondary', fontFamily: 'Inter, sans-serif', py: 1.5 }}>
                     {row.category}
                   </TableCell>
-                  <TableCell sx={{ fontSize: 14, color: '#1C1C28', fontFamily: 'Inter, sans-serif', py: 1.5 }}>
+                  <TableCell sx={{ fontSize: 14, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: 1.5 }}>
                     {row.batch}
                   </TableCell>
-                  <TableCell sx={{ fontSize: 14, color: '#555770', fontFamily: 'Inter, sans-serif', py: 1.5 }}>
+                  <TableCell sx={{ fontSize: 14, color: 'text.secondary', fontFamily: 'Inter, sans-serif', py: 1.5 }}>
                     {row.expiry}
                   </TableCell>
-                  <TableCell sx={{ fontSize: 14, color: '#1C1C28', fontFamily: 'Inter, sans-serif', py: 1.5 }}>
+                  <TableCell sx={{ fontSize: 14, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: 1.5 }}>
                     {row.packSize}
                   </TableCell>
-                  <TableCell sx={{ fontSize: 14, color: '#1C1C28', fontFamily: 'Inter, sans-serif', py: 1.5 }}>
+                  <TableCell sx={{ fontSize: 14, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: 1.5 }}>
                     {row.quantity}
                   </TableCell>
                   <TableCell sx={{ py: 1.5 }}>
@@ -143,7 +145,7 @@ export default function StockView({ navItems, onNavigate }: StockViewProps) {
 
         {rows.length === 0 && (
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200 }}>
-            <Typography sx={{ color: '#555770', fontFamily: 'Inter, sans-serif' }}>
+            <Typography sx={{ color: 'text.secondary', fontFamily: 'Inter, sans-serif' }}>
               No stock items found.
             </Typography>
           </Box>

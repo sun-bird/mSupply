@@ -29,7 +29,7 @@ function perfColor(value: number): string {
 interface SectionProps {
   title: string;
   defaultOpen?: boolean;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 function Section({ title, defaultOpen = false, children }: SectionProps) {
