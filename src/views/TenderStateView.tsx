@@ -61,6 +61,8 @@ export default function TenderStateView({ navItems, onNavigate, tender }: Tender
                   onNavigate('/replenishment/tenders/plan');
                 } else if (step.key === 'items') {
                   onNavigate('/replenishment/tenders/items');
+                } else if (step.key === 'source') {
+                  onNavigate('/replenishment/tenders/source');
                 }
               }}
               {...(isAward && {

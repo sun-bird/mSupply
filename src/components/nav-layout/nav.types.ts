@@ -28,6 +28,7 @@ export interface ComboAction {
 
 export interface ViewHeaderProps {
   title: string;
+  afterTitle?: ReactNode;
   onBack?: () => void;
   primaryAction?: PrimaryAction;
   secondaryActions?: PrimaryAction[];

@@ -1,6 +1,8 @@
 import {
   AddCircleIcon,
   ArrowDown01Icon,
+  CheckmarkCircle01Icon,
+  CircleIcon,
   EyeIcon,
   HelpCircleIcon,
   MoreHorizontalIcon,
@@ -22,10 +24,11 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TableSortLabel,
   Typography,
   useTheme,
 } from '@mui/material';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLayout } from '../components/nav-layout';
 import type { NavItem } from '../components/nav-layout';
@@ -64,16 +67,39 @@ export default function TenderItemsView({ navItems, onNavigate, tender }: Tender
   const theme = useTheme();
   const primaryColor = theme.palette.primary.main;
   const [searchQuery, setSearchQuery] = useState('');
+  const [checkedRows, setCheckedRows] = useState<Set<number>>(new Set());
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
-  const filteredItems = MOCK_ITEMS.filter((item) => {
-    if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      item.itemName.toLowerCase().includes(q) ||
-      item.itemCode.toLowerCase().includes(q) ||
-      item.itemNumber.toLowerCase().includes(q)
-    );
-  });
+  const handleSort = (key: string) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  };
+
+  const filteredItems = useMemo(() => {
+    let items = MOCK_ITEMS.filter((item) => {
+      if (!searchQuery) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        item.itemName.toLowerCase().includes(q) ||
+        item.itemCode.toLowerCase().includes(q) ||
+        item.itemNumber.toLowerCase().includes(q)
+      );
+    });
+    if (sortKey) {
+      items = [...items].sort((a, b) => {
+        const av = a[sortKey as keyof TenderItem];
+        const bv = b[sortKey as keyof TenderItem];
+        const cmp = typeof av === 'number' ? av - (bv as number) : String(av).localeCompare(String(bv));
+        return sortDir === 'asc' ? cmp : -cmp;
+      });
+    }
+    return items;
+  }, [searchQuery, sortKey, sortDir]);
 
   const columns = [
     { key: 'itemNumber', label: t('tenderItems.itemNumber') },
@@ -92,7 +118,41 @@ export default function TenderItemsView({ navItems, onNavigate, tender }: Tender
       navItems={navItems}
       activePath="/replenishment/tenders"
       headerProps={{
-        title: `${tender.serial} > ${tender.description} > ${t('tenderItems.title')}`,
+        title: `${tender.serial} > ${tender.description}`,
+        afterTitle: (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px', ml: 2 }}>
+            {(['plan', 'items', 'source', 'evaluate', 'award'] as const).map((step, i, steps) => {
+              const stepRoutes: Record<string, string> = {
+                plan: '/replenishment/tenders/plan',
+                items: '/replenishment/tenders/items',
+                source: '/replenishment/tenders/source',
+              };
+              const activeIndex = steps.indexOf('items');
+              const isActive = step === 'items';
+              const isCompleted = i < activeIndex;
+              const isNavigable = step in stepRoutes;
+              const color = isActive ? primaryColor : '#555770';
+              return (
+                <Box
+                  key={step}
+                  onClick={isNavigable && !isActive ? () => onNavigate(stepRoutes[step]) : undefined}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    cursor: isNavigable && !isActive ? 'pointer' : 'default',
+                    '&:hover': isNavigable && !isActive ? { opacity: 0.7 } : {},
+                  }}
+                >
+                  <HugeiconsIcon icon={isCompleted || isActive ? CheckmarkCircle01Icon : CircleIcon} size={12} color={color} />
+                  <Typography sx={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: isActive ? 600 : 400, color }}>
+                    {t(`tenderState.${step}`)}
+                  </Typography>
+                </Box>
+              );
+            })}
+          </Box>
+        ),
         onBack: () => onNavigate('/replenishment/tenders/detail'),
         primaryAction: {
           label: t('tenderItems.addItems'),
@@ -165,10 +225,10 @@ export default function TenderItemsView({ navItems, onNavigate, tender }: Tender
           <Table size="small" sx={{ fontFamily: 'Inter, sans-serif' }}>
             <TableHead>
               <TableRow>
-                <TableCell padding="checkbox" sx={{ borderBottom: '1px solid', borderColor: 'divider', py: 1.5 }}>
+                <TableCell padding="checkbox" sx={{ borderBottom: '1px solid', borderColor: 'divider', py: '10px' }}>
                   <Checkbox size="small" sx={{ color: '#3E7BFA', '&.Mui-checked': { color: '#3E7BFA' }, '& .MuiSvgIcon-root': { fontSize: 18 } }} />
                 </TableCell>
-                <TableCell sx={{ width: 40, borderBottom: '1px solid', borderColor: 'divider', py: 1.5 }} />
+                <TableCell sx={{ width: 40, borderBottom: '1px solid', borderColor: 'divider', py: '10px' }} />
                 {columns.map((col) => (
                   <TableCell
                     key={col.key}
@@ -176,60 +236,74 @@ export default function TenderItemsView({ navItems, onNavigate, tender }: Tender
                       fontSize: 12,
                       fontWeight: 600,
                       color: 'text.secondary',
+                      lineHeight: '16px',
+                      verticalAlign: 'bottom',
                       borderBottom: '1px solid',
                       borderColor: 'divider',
-                      py: 1.5,
+                      py: '10px',
                       fontFamily: 'Inter, sans-serif',
-                      whiteSpace: 'nowrap',
+                      whiteSpace: 'normal',
                       ...(col.minWidth && { minWidth: col.minWidth }),
                     }}
                   >
-                    {col.label}
+                    <TableSortLabel
+                      active={sortKey === col.key}
+                      direction={sortKey === col.key ? sortDir : 'asc'}
+                      onClick={() => handleSort(col.key)}
+                      sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary', '&.Mui-active': { color: 'text.secondary' } }}
+                    >
+                      {col.label}
+                    </TableSortLabel>
                   </TableCell>
                 ))}
                 {/* Notes column */}
-                <TableCell sx={{ width: 40, borderBottom: '1px solid', borderColor: 'divider', py: 1.5 }} />
+                <TableCell sx={{ width: 40, borderBottom: '1px solid', borderColor: 'divider', py: '10px' }} />
               </TableRow>
             </TableHead>
             <TableBody>
               {filteredItems.map((item, idx) => (
                 <TableRow key={idx} hover sx={{ '&:hover': { bgcolor: 'action.hover' } }}>
-                  <TableCell padding="checkbox" sx={{ py: 1.5 }}>
-                    <Checkbox size="small" sx={{ color: '#3E7BFA', '&.Mui-checked': { color: '#3E7BFA' }, '& .MuiSvgIcon-root': { fontSize: 18 } }} />
+                  <TableCell padding="checkbox" sx={{ py: '10px' }}>
+                    <Checkbox
+                      size="small"
+                      checked={checkedRows.has(idx)}
+                      onChange={() => setCheckedRows((prev) => { const next = new Set(prev); if (next.has(idx)) next.delete(idx); else next.add(idx); return next; })}
+                      sx={{ color: '#3E7BFA', '&.Mui-checked': { color: '#3E7BFA' }, '& .MuiSvgIcon-root': { fontSize: 18 } }}
+                    />
                   </TableCell>
-                  <TableCell sx={{ py: 1.5, width: 40 }}>
+                  <TableCell sx={{ py: '10px', width: 40 }}>
                     <IconButton size="small" sx={{ color: 'text.secondary' }}>
                       <HugeiconsIcon icon={MoreHorizontalIcon} size={14} />
                     </IconButton>
                   </TableCell>
-                  <TableCell sx={{ fontSize: 14, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: 1.5 }}>
+                  <TableCell sx={{ fontSize: 12, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: '10px' }}>
                     {item.itemNumber}
                   </TableCell>
-                  <TableCell sx={{ fontSize: 14, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: 1.5 }}>
+                  <TableCell sx={{ fontSize: 12, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: '10px' }}>
                     {item.itemCode}
                   </TableCell>
-                  <TableCell sx={{ fontSize: 14, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: 1.5 }}>
+                  <TableCell sx={{ fontSize: 12, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: '10px' }}>
                     {item.itemName}
                   </TableCell>
-                  <TableCell sx={{ fontSize: 14, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: 1.5 }}>
+                  <TableCell sx={{ fontSize: 12, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: '10px' }}>
                     {item.numberOfPacks}
                   </TableCell>
-                  <TableCell sx={{ fontSize: 14, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: 1.5 }}>
+                  <TableCell sx={{ fontSize: 12, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: '10px' }}>
                     {item.packSize}
                   </TableCell>
-                  <TableCell sx={{ fontSize: 14, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: 1.5 }}>
+                  <TableCell sx={{ fontSize: 12, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: '10px' }}>
                     {item.totalQuantity}
                   </TableCell>
-                  <TableCell sx={{ fontSize: 14, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: 1.5 }}>
+                  <TableCell sx={{ fontSize: 12, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: '10px' }}>
                     {item.unitType}
                   </TableCell>
-                  <TableCell sx={{ fontSize: 14, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: 1.5 }}>
+                  <TableCell sx={{ fontSize: 12, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: '10px' }}>
                     {item.productSpecifications}
                   </TableCell>
-                  <TableCell sx={{ fontSize: 14, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: 1.5 }}>
+                  <TableCell sx={{ fontSize: 12, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: '10px' }}>
                     {item.conditions}
                   </TableCell>
-                  <TableCell sx={{ py: 1.5, width: 40 }}>
+                  <TableCell sx={{ py: '10px', width: 40 }}>
                     <IconButton size="small" sx={{ color: 'text.secondary' }}>
                       <HugeiconsIcon icon={NoteIcon} size={16} />
                     </IconButton>
@@ -250,7 +324,7 @@ export default function TenderItemsView({ navItems, onNavigate, tender }: Tender
       </Box>
 
       {/* Next Button */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3, pb: 4 }}>
+      <Box sx={{ position: 'fixed', bottom: '100px', left: '50%', transform: 'translateX(-50%)', display: 'flex', zIndex: 5 }}>
         <Button
           variant="contained"
           onClick={() => onNavigate('/replenishment/tenders/detail')}

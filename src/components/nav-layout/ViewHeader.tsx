@@ -20,6 +20,7 @@ interface ViewHeaderInternalProps extends ViewHeaderProps {
 
 export default function ViewHeader({
   title,
+  afterTitle,
   onBack,
   primaryAction,
   secondaryActions = [],
@@ -62,7 +63,7 @@ export default function ViewHeader({
         )}
 
         {/* Back + Title */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           {onBack && (
             <IconButton
               onClick={onBack}
@@ -70,7 +71,7 @@ export default function ViewHeader({
               aria-label={t('common.goBack')}
               sx={{ color: 'primary.main' }}
             >
-              <HugeiconsIcon icon={ArrowLeft01Icon} size={20} />
+              <HugeiconsIcon icon={ArrowLeft01Icon} size={20} strokeWidth={3} />
             </IconButton>
           )}
           <Typography
@@ -83,8 +84,13 @@ export default function ViewHeader({
               whiteSpace: 'nowrap',
             }}
           >
-            {title}
+            {title.includes(' > ') ? (
+              <>
+                {title.split(' > ')[0]} {' '}<Box component="span" sx={{ fontWeight: 500 }}>{title.split(' > ').slice(1).join(' > ')}</Box>
+              </>
+            ) : title}
           </Typography>
+          {afterTitle}
         </Box>
 
         {/* Spacer */}

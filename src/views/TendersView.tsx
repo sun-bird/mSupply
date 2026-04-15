@@ -22,10 +22,11 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TableSortLabel,
   Typography,
   useTheme,
 } from '@mui/material';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLayout } from '../components/nav-layout';
 import type { NavItem } from '../components/nav-layout';
@@ -72,6 +73,18 @@ export default function TendersView({ navItems, onNavigate, onSelectTender }: Te
   const primaryColor = theme.palette.primary.main;
   const [activeFilter, setActiveFilter] = useState('active');
   const [searchQuery, setSearchQuery] = useState('');
+  const [checkedRows, setCheckedRows] = useState<Set<number>>(new Set());
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+
+  const handleSort = (key: string) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  };
 
   const statusFilters = [
     { key: 'active', label: t('tenders.activeTenders'), count: rows.length },
@@ -82,20 +95,31 @@ export default function TendersView({ navItems, onNavigate, onSelectTender }: Te
     { key: 'Finalised', label: t('tenders.finalised'), count: rows.filter((r) => r.status === 'Finalised').length },
   ];
 
-  const filteredRows = rows.filter((row) => {
-    const matchesStatus = activeFilter === 'active' || row.status === activeFilter;
-    if (!matchesStatus) return false;
-    if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      row.serial.toLowerCase().includes(q) ||
-      row.status.toLowerCase().includes(q) ||
-      row.method.toLowerCase().includes(q) ||
-      row.type.toLowerCase().includes(q) ||
-      row.description.toLowerCase().includes(q) ||
-      row.reference.toLowerCase().includes(q)
-    );
-  });
+  const filteredRows = useMemo(() => {
+    let result = rows.filter((row) => {
+      const matchesStatus = activeFilter === 'active' || row.status === activeFilter;
+      if (!matchesStatus) return false;
+      if (!searchQuery) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        row.serial.toLowerCase().includes(q) ||
+        row.status.toLowerCase().includes(q) ||
+        row.method.toLowerCase().includes(q) ||
+        row.type.toLowerCase().includes(q) ||
+        row.description.toLowerCase().includes(q) ||
+        row.reference.toLowerCase().includes(q)
+      );
+    });
+    if (sortKey) {
+      result = [...result].sort((a, b) => {
+        const av = a[sortKey as keyof TenderRow];
+        const bv = b[sortKey as keyof TenderRow];
+        const cmp = String(av).localeCompare(String(bv));
+        return sortDir === 'asc' ? cmp : -cmp;
+      });
+    }
+    return result;
+  }, [activeFilter, searchQuery, sortKey, sortDir]);
 
   return (
     <NavLayout
@@ -245,37 +269,46 @@ export default function TendersView({ navItems, onNavigate, onSelectTender }: Te
           <Table size="small" sx={{ fontFamily: 'Inter, sans-serif' }}>
             <TableHead>
               <TableRow>
-                <TableCell padding="checkbox" sx={{ borderBottom: '1px solid', borderColor: 'divider', py: 1.5 }}>
+                <TableCell padding="checkbox" sx={{ borderBottom: '1px solid', borderColor: 'divider', py: '10px' }}>
                   <Checkbox size="small" sx={{ color: '#3E7BFA', '&.Mui-checked': { color: '#3E7BFA' }, '& .MuiSvgIcon-root': { fontSize: 18 } }} />
                 </TableCell>
-                <TableCell sx={{ width: 40, borderBottom: '1px solid', borderColor: 'divider', py: 1.5 }} />
+                <TableCell sx={{ width: 40, borderBottom: '1px solid', borderColor: 'divider', py: '10px' }} />
                 {[
-                  { label: t('tenders.serial') },
-                  { label: t('tenders.status') },
-                  { label: t('tenders.method') },
-                  { label: t('tenders.type') },
-                  { label: t('tenders.description'), minWidth: 160 },
-                  { label: t('tenders.reference') },
-                  { label: t('tenders.created') },
-                  { label: t('tenders.advertised') },
-                  { label: t('tenders.deadline') },
-                  { label: t('tenders.expires') },
+                  { key: 'serial', label: t('tenders.serial') },
+                  { key: 'status', label: t('tenders.status') },
+                  { key: 'method', label: t('tenders.method') },
+                  { key: 'type', label: t('tenders.type') },
+                  { key: 'description', label: t('tenders.description'), minWidth: 160 },
+                  { key: 'reference', label: t('tenders.reference') },
+                  { key: 'created', label: t('tenders.created') },
+                  { key: 'advertised', label: t('tenders.advertised') },
+                  { key: 'deadline', label: t('tenders.deadline') },
+                  { key: 'expires', label: t('tenders.expires') },
                 ].map((col) => (
                   <TableCell
-                    key={col.label}
+                    key={col.key}
                     sx={{
                       fontSize: 12,
                       fontWeight: 600,
                       color: 'text.secondary',
+                      lineHeight: '16px',
+                      verticalAlign: 'bottom',
                       borderBottom: '1px solid',
                       borderColor: 'divider',
-                      py: 1.5,
+                      py: '10px',
                       fontFamily: 'Inter, sans-serif',
-                      whiteSpace: 'nowrap',
+                      whiteSpace: 'normal',
                       ...(col.minWidth && { minWidth: col.minWidth }),
                     }}
                   >
-                    {col.label}
+                    <TableSortLabel
+                      active={sortKey === col.key}
+                      direction={sortKey === col.key ? sortDir : 'asc'}
+                      onClick={() => handleSort(col.key)}
+                      sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary', '&.Mui-active': { color: 'text.secondary' } }}
+                    >
+                      {col.label}
+                    </TableSortLabel>
                   </TableCell>
                 ))}
               </TableRow>
@@ -293,18 +326,23 @@ export default function TendersView({ navItems, onNavigate, onSelectTender }: Te
                     }}
                     sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'action.hover' } }}
                   >
-                    <TableCell padding="checkbox" sx={{ py: 1.5 }}>
-                      <Checkbox size="small" sx={{ color: '#3E7BFA', '&.Mui-checked': { color: '#3E7BFA' }, '& .MuiSvgIcon-root': { fontSize: 18 } }} />
+                    <TableCell padding="checkbox" sx={{ py: '10px' }}>
+                      <Checkbox
+                        size="small"
+                        checked={checkedRows.has(idx)}
+                        onChange={(e) => { e.stopPropagation(); setCheckedRows((prev) => { const next = new Set(prev); if (next.has(idx)) next.delete(idx); else next.add(idx); return next; }); }}
+                        sx={{ color: '#3E7BFA', '&.Mui-checked': { color: '#3E7BFA' }, '& .MuiSvgIcon-root': { fontSize: 18 } }}
+                      />
                     </TableCell>
-                    <TableCell sx={{ py: 1.5, width: 40 }}>
+                    <TableCell sx={{ py: '10px', width: 40 }}>
                       <IconButton size="small" sx={{ color: 'text.secondary' }}>
                         <HugeiconsIcon icon={MoreHorizontalIcon} size={14} />
                       </IconButton>
                     </TableCell>
-                    <TableCell sx={{ fontSize: 14, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: 1.5 }}>
+                    <TableCell sx={{ fontSize: 12, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: '10px' }}>
                       {row.serial}
                     </TableCell>
-                    <TableCell sx={{ py: 1.5 }}>
+                    <TableCell sx={{ py: '10px' }}>
                       <Chip
                         icon={
                           <Box
@@ -331,28 +369,28 @@ export default function TendersView({ navItems, onNavigate, onSelectTender }: Te
                         }}
                       />
                     </TableCell>
-                    <TableCell sx={{ fontSize: 14, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: 1.5 }}>
+                    <TableCell sx={{ fontSize: 12, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: '10px' }}>
                       {row.method}
                     </TableCell>
-                    <TableCell sx={{ fontSize: 14, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: 1.5 }}>
+                    <TableCell sx={{ fontSize: 12, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: '10px' }}>
                       {row.type}
                     </TableCell>
-                    <TableCell sx={{ fontSize: 14, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: 1.5 }}>
+                    <TableCell sx={{ fontSize: 12, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: '10px' }}>
                       {row.description}
                     </TableCell>
-                    <TableCell sx={{ fontSize: 14, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: 1.5, whiteSpace: 'nowrap' }}>
+                    <TableCell sx={{ fontSize: 12, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: '10px', whiteSpace: 'nowrap' }}>
                       {row.reference}
                     </TableCell>
-                    <TableCell sx={{ fontSize: 14, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: 1.5, whiteSpace: 'nowrap' }}>
+                    <TableCell sx={{ fontSize: 12, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: '10px', whiteSpace: 'nowrap' }}>
                       {row.created}
                     </TableCell>
-                    <TableCell sx={{ fontSize: 14, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: 1.5, whiteSpace: 'nowrap' }}>
+                    <TableCell sx={{ fontSize: 12, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: '10px', whiteSpace: 'nowrap' }}>
                       {row.advertised}
                     </TableCell>
-                    <TableCell sx={{ fontSize: 14, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: 1.5, whiteSpace: 'nowrap' }}>
+                    <TableCell sx={{ fontSize: 12, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: '10px', whiteSpace: 'nowrap' }}>
                       {row.deadline}
                     </TableCell>
-                    <TableCell sx={{ fontSize: 14, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: 1.5, whiteSpace: 'nowrap' }}>
+                    <TableCell sx={{ fontSize: 12, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: '10px', whiteSpace: 'nowrap' }}>
                       {row.expires}
                     </TableCell>
                   </TableRow>

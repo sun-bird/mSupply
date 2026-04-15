@@ -30,6 +30,7 @@ import TendersView from './views/TendersView';
 import type { TenderRow } from './views/TendersView';
 import TenderItemsView from './views/TenderItemsView';
 import TenderPlanView from './views/TenderPlanView';
+import TenderSourceView from './views/TenderSourceView';
 import TenderStateView from './views/TenderStateView';
 import ThemeEditorView from './views/ThemeEditorView';
 import type { SavedTheme } from './views/ThemeEditorView';
@@ -352,6 +353,8 @@ export default function App() {
     content = <TenderPlanView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} />;
   } else if (activePath === '/replenishment/tenders/items' && selectedTender) {
     content = <TenderItemsView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} />;
+  } else if (activePath === '/replenishment/tenders/source' && selectedTender) {
+    content = <TenderSourceView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} />;
   } else if (activePath === '/replenishment/tenders/detail' && selectedTender) {
     content = <TenderStateView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} />;
   } else if (activePath === '/replenishment/tenders') {
