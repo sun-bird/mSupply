@@ -154,6 +154,7 @@ export default function TendersView({ navItems, onNavigate, onSelectTender }: Te
                 transition: 'all 0.15s ease',
                 '&:hover': {
                   boxShadow: '0px 2px 8px rgba(0,0,0,0.08)',
+                  bgcolor: isActive ? 'rgba(62,123,250,0.18)' : 'action.hover',
                 },
               }}
             >
@@ -161,7 +162,9 @@ export default function TendersView({ navItems, onNavigate, onSelectTender }: Te
                 label={filter.label}
                 size="small"
                 sx={{
-                  bgcolor: isActive ? '#3E7BFA' : 'action.hover',
+                  bgcolor: isActive
+                    ? '#3E7BFA'
+                    : statusColors[filter.key]?.bg ?? 'action.hover',
                   color: isActive ? '#FFFFFF' : 'text.primary',
                   fontSize: 12,
                   fontFamily: 'Inter, sans-serif',
@@ -314,7 +317,7 @@ export default function TendersView({ navItems, onNavigate, onSelectTender }: Te
                             }}
                           />
                         }
-                        label={row.status}
+                        label={t(`tenders.${row.status.toLowerCase()}`)}
                         size="small"
                         sx={{
                           bgcolor: sc.bg,

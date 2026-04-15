@@ -32,7 +32,7 @@ export default function TenderStateView({ navItems, onNavigate, tender }: Tender
       navItems={navItems}
       activePath="/replenishment/tenders"
       headerProps={{
-        title: `${tender.serial} - ${t('tenderState.title')}`,
+        title: `${tender.serial} > ${tender.description}`,
         onBack: () => onNavigate('/replenishment/tenders'),
         comboActions: [
           { icon: <HugeiconsIcon icon={PrinterIcon} size={20} />, label: t('common.print'), onClick: () => {} },
@@ -58,7 +58,9 @@ export default function TenderStateView({ navItems, onNavigate, tender }: Tender
               title={t(meta.titleKey)}
               description={t(meta.descriptionKey)}
               onView={() => {
-                // Sub-pages to be implemented later
+                if (step.key === 'plan') {
+                  onNavigate('/replenishment/tenders/plan');
+                }
               }}
               {...(isAward && {
                 onAction: () => {

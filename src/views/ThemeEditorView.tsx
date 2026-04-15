@@ -644,6 +644,10 @@ export default function ThemeEditorView({
                   onChange={(e) => loadTheme(e.target.value as string)}
                   displayEmpty
                   size="small"
+                  renderValue={(val) => {
+                    const found = savedThemes.find((t) => t.id === val);
+                    return found?.themeName || '';
+                  }}
                   sx={{
                     width: { xs: 180, sm: 260 },
                     flexShrink: 0,
@@ -659,7 +663,12 @@ export default function ThemeEditorView({
                   }}
                 >
                   {savedThemes.map((theme) => (
-                    <MenuItem key={theme.id} value={theme.id} sx={{ fontSize: 12 }}>
+                    <MenuItem key={theme.id} value={theme.id} sx={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      {theme.logoDataUrl ? (
+                        <Box component="img" src={theme.logoDataUrl} alt="" sx={{ width: 20, height: 20, objectFit: 'contain', flexShrink: 0 }} />
+                      ) : (
+                        <Box sx={{ width: 20, height: 20, borderRadius: '4px', bgcolor: theme.primaryColor, flexShrink: 0 }} />
+                      )}
                       {theme.themeName}
                     </MenuItem>
                   ))}
@@ -758,6 +767,11 @@ export default function ThemeEditorView({
               bgcolor: 'transparent',
               whiteSpace: 'pre',
               overflowX: 'auto',
+              colorScheme: (t) => t.palette.mode === 'dark' ? 'dark' : 'light',
+              '&::-webkit-scrollbar': { width: 8, height: 8 },
+              '&::-webkit-scrollbar-track': { bgcolor: 'transparent' },
+              '&::-webkit-scrollbar-thumb': { bgcolor: 'action.disabled', borderRadius: 4 },
+              '&::-webkit-scrollbar-thumb:hover': { bgcolor: 'text.secondary' },
             }}
           />
         </ThemeDrawer>
@@ -770,6 +784,7 @@ export default function ThemeEditorView({
             justifyContent: 'flex-end',
             gap: '10px',
             flexWrap: 'wrap',
+            pt: '20px',
             pb: 4,
           }}
         >

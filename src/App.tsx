@@ -28,6 +28,7 @@ import type { ColorMode } from './views/PreferencesView';
 import StockView from './views/StockView';
 import TendersView from './views/TendersView';
 import type { TenderRow } from './views/TendersView';
+import TenderPlanView from './views/TenderPlanView';
 import TenderStateView from './views/TenderStateView';
 import ThemeEditorView from './views/ThemeEditorView';
 import type { SavedTheme } from './views/ThemeEditorView';
@@ -155,6 +156,7 @@ function buildNavItems(t: (key: string) => string): NavItem[] {
     {
       label: t('nav.replenishment'), icon: <HugeiconsIcon icon={PackageOpenIcon} size={22} />, href: '/replenishment',
       children: [
+        { label: t('nav.tenders'), href: '/replenishment/tenders' },
         { label: t('nav.purchaseOrders'), href: '/replenishment/purchase-orders' },
         { label: t('nav.goodsReceived'), href: '/replenishment/goods-received' },
         { label: t('nav.internalOrders'), href: '/replenishment/internal-orders' },
@@ -162,7 +164,6 @@ function buildNavItems(t: (key: string) => string): NavItem[] {
         { label: t('nav.supplierReturns'), href: '/replenishment/supplier-returns' },
         { label: t('nav.rnrForms'), href: '/replenishment/rnr-forms' },
         { label: t('nav.suppliers'), href: '/replenishment/suppliers' },
-        { label: t('nav.tenders'), href: '/replenishment/tenders' },
       ],
     },
     {
@@ -331,6 +332,8 @@ export default function App() {
     content = <StockView navItems={wiredNavItems} onNavigate={setActivePath} />;
   } else if (activePath === '/replenishment/goods-received') {
     content = <GoodsReceivedView navItems={wiredNavItems} onNavigate={setActivePath} />;
+  } else if (activePath === '/replenishment/tenders/plan' && selectedTender) {
+    content = <TenderPlanView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} />;
   } else if (activePath === '/replenishment/tenders/detail' && selectedTender) {
     content = <TenderStateView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} />;
   } else if (activePath === '/replenishment/tenders') {

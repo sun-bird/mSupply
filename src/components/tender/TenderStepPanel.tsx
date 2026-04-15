@@ -45,6 +45,7 @@ export default function TenderStepPanel({
 
   return (
     <Box
+      onClick={onView}
       sx={{
         bgcolor: 'background.paper',
         borderRadius: '12px',
@@ -56,7 +57,7 @@ export default function TenderStepPanel({
         boxShadow: isNextUp
           ? '0px 0px 2px rgba(40,41,61,0.04), 0px 4px 8px rgba(96,97,112,0.16)'
           : '0px 0px 2px rgba(40,41,61,0.04)',
-        borderLeft: isNextUp ? `3px solid ${primaryColor}` : '3px solid transparent',
+        border: isNextUp ? `1px solid ${primaryColor}` : undefined,
         opacity: isIncomplete ? 0.6 : 1,
         cursor: 'pointer',
         transition: 'all 0.15s ease',
@@ -80,7 +81,7 @@ export default function TenderStepPanel({
           border: isComplete
             ? 'none'
             : isNextUp
-              ? `2px solid ${primaryColor}`
+              ? '2px solid #05A660'
               : '2px solid #C7C7D1',
           boxShadow: '0px 0px 2px rgba(40,41,61,0.04), 0px 4px 8px rgba(96,97,112,0.16)',
         }}
