@@ -36,7 +36,7 @@ import type { SavedTheme } from './views/ThemeEditorView';
 const DEFAULT_PRIMARY = '#E95C30';
 const STORAGE_THEMES = 'msupply-themes';
 const STORAGE_THEMES_VERSION = 'msupply-themes-version';
-const THEMES_VERSION = '3';
+const THEMES_VERSION = '4';
 const STORAGE_ACTIVE = 'msupply-active-theme-id';
 const STORAGE_COLOR_MODE = 'msupply-color-mode';
 
@@ -79,6 +79,12 @@ const THEME_LOGOS: Record<string, string> = {
   'default-salud': new URL('./assets/themes/salud.png', import.meta.url).href,
   'default-fiji': new URL('./assets/themes/fiji.png', import.meta.url).href,
   'default-nigeria': new URL('./assets/themes/nigeria.png', import.meta.url).href,
+  'default-hiviz-blue-ld': new URL('./assets/msupply-logo.svg', import.meta.url).href,
+  'default-hiviz-green-ld': new URL('./assets/msupply-logo.svg', import.meta.url).href,
+  'default-hiviz-amber-ld': new URL('./assets/msupply-logo.svg', import.meta.url).href,
+  'default-hiviz-blue-lo': new URL('./assets/msupply-logo.svg', import.meta.url).href,
+  'default-hiviz-green-lo': new URL('./assets/msupply-logo.svg', import.meta.url).href,
+  'default-hiviz-purple-lo': new URL('./assets/msupply-logo.svg', import.meta.url).href,
 };
 
 async function seedDefaultThemes(): Promise<SavedTheme[]> {
