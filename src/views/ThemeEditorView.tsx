@@ -577,7 +577,7 @@ export default function ThemeEditorView({
         onBack: () => onNavigate('/dashboard'),
         primaryAction: {
           label: t('themeEditor.createTheme'),
-          icon: <HugeiconsIcon icon={AddCircleIcon} size={24} />,
+          icon: <HugeiconsIcon icon={AddCircleIcon} size={24} color={primaryColor} />,
           onClick: () => loadTheme('__new__'),
         },
         comboActions: [

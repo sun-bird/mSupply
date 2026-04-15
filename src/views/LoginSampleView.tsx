@@ -69,7 +69,7 @@ export default function LoginSampleView({
           sx={{
             flex: 1,
             bgcolor: 'white',
-            background: `linear-gradient(137deg, ${alpha(primaryColor || '#E95C30', 0.6)} 7%, ${primaryColor || '#E95C30'} 93%)`,
+            background: `linear-gradient(137deg, ${alpha(primaryColor || '#E95C30', 0.75)} 7%, ${primaryColor || '#E95C30'} 93%)`,
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'flex-end',
