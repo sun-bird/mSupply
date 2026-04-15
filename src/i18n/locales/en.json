@@ -103,6 +103,22 @@
     "removeDocument": "Remove Document",
     "done": "DONE"
   },
+  "tenderItems": {
+    "title": "Items",
+    "addItems": "Add Items",
+    "itemNumber": "Item Number",
+    "itemCode": "Item Code",
+    "itemName": "Item Name",
+    "numberOfPacks": "Number of Packs",
+    "packSize": "Pack Size",
+    "totalQuantity": "Total Quantity",
+    "unitType": "Unit Type",
+    "productSpecifications": "Product Specifications",
+    "conditions": "Conditions",
+    "next": "Next",
+    "search": "Search...",
+    "showAll": "Show All"
+  },
   "themeEditor": {
     "title": "Theme Editor",
     "createTheme": "Create Theme",

@@ -59,6 +59,8 @@ export default function TenderStateView({ navItems, onNavigate, tender }: Tender
               onView={() => {
                 if (step.key === 'plan') {
                   onNavigate('/replenishment/tenders/plan');
+                } else if (step.key === 'items') {
+                  onNavigate('/replenishment/tenders/items');
                 }
               }}
               {...(isAward && {
