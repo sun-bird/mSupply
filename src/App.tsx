@@ -35,6 +35,8 @@ import type { SavedTheme } from './views/ThemeEditorView';
 
 const DEFAULT_PRIMARY = '#E95C30';
 const STORAGE_THEMES = 'msupply-themes';
+const STORAGE_THEMES_VERSION = 'msupply-themes-version';
+const THEMES_VERSION = '2';
 const STORAGE_ACTIVE = 'msupply-active-theme-id';
 const STORAGE_COLOR_MODE = 'msupply-color-mode';
 
@@ -62,6 +64,9 @@ const DEFAULT_THEMES: SavedTheme[] = [
   { id: 'default-salud', themeName: 'Salud', primaryColor: '#32B1A5', secondaryColor: '#FF8800', logoDataUrl: null },
   { id: 'default-fiji', themeName: 'Fiji', primaryColor: '#005D62', secondaryColor: '#FF8800', logoDataUrl: null },
   { id: 'default-nigeria', themeName: 'Nigeria', primaryColor: '#008751', secondaryColor: '#FF8800', logoDataUrl: null },
+  { id: 'default-hiviz-blue', themeName: 'Hiviz Blue (Light & Dark mode)', primaryColor: '#1E40AF', secondaryColor: '#FF8800', logoDataUrl: null },
+  { id: 'default-hiviz-green', themeName: 'Hiviz Green (Light & Dark mode)', primaryColor: '#05A660', secondaryColor: '#FF8800', logoDataUrl: null },
+  { id: 'default-hiviz-purple', themeName: 'Hiviz Purple (light only)', primaryColor: '#7C3AED', secondaryColor: '#FF8800', logoDataUrl: null },
 ];
 
 const THEME_LOGOS: Record<string, string> = {
@@ -263,11 +268,12 @@ export default function App() {
     persistColorMode(mode);
   }, []);
 
-  // Seed default themes with logos on first visit
+  // Seed default themes with logos on first visit or when version changes
   useEffect(() => {
-    if (!localStorage.getItem(STORAGE_THEMES)) {
+    if (!localStorage.getItem(STORAGE_THEMES) || localStorage.getItem(STORAGE_THEMES_VERSION) !== THEMES_VERSION) {
       seedDefaultThemes().then((seeded) => {
         setSavedThemes(seeded);
+        localStorage.setItem(STORAGE_THEMES_VERSION, THEMES_VERSION);
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
