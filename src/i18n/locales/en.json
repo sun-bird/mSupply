@@ -196,7 +196,10 @@
     "fileTooLarge": "File exceeds 1 MB limit",
     "fileMustBeImage": "File must be an image",
     "dragDropLogo": "Drag & drop or tap to upload logo",
-    "themeSaved": "Theme has been successfully updated"
+    "themeSaved": "Theme has been successfully updated",
+    "logoDecodeFailed": "Couldn't read that image — it may be corrupt or in an unsupported format.",
+    "storageFull": "Browser storage is full. Delete an unused theme and try again.",
+    "saveFailed": "Couldn't save the theme. Please try again."
   },
   "preferences": {
     "title": "Preferences",

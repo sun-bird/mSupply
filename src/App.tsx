@@ -51,7 +51,7 @@ const STORAGE_COLOR_MODE = 'msupply-color-mode';
 // data URL fits within localStorage quotas (~5MB total across all themes).
 const LOGO_RASTER_MIN = 256;
 const LOGO_RASTER_MAX = 512;
-function imgToDataUrl(src: string): Promise<string> {
+function imgToDataUrl(src: string): Promise<string | null> {
   return new Promise((resolve) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
@@ -68,7 +68,13 @@ function imgToDataUrl(src: string): Promise<string> {
       canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
       resolve(canvas.toDataURL('image/png'));
     };
-    img.onerror = () => resolve('');
+    // Resolve with null (not '') on load failure so consumers treat a broken
+    // seed the same as "no logo" and fall back to the default preview/icon,
+    // instead of rendering a broken-image <img src=""> tile.
+    img.onerror = () => {
+      console.warn(`[theme] failed to load logo asset: ${src}`);
+      resolve(null);
+    };
     img.src = src;
   });
 }
@@ -150,8 +156,32 @@ function loadSavedThemes(): SavedTheme[] {
   }
 }
 
+/**
+ * Thrown when browser localStorage is too full to persist the themes array.
+ * Distinct class so callers can render a targeted error message.
+ */
+export class ThemeStorageQuotaError extends Error {
+  readonly approximateBytes: number;
+  constructor(approximateBytes: number) {
+    super(`Browser storage is full — cannot save theme (~${Math.round(approximateBytes / 1024)} KB).`);
+    this.name = 'ThemeStorageQuotaError';
+    this.approximateBytes = approximateBytes;
+  }
+}
+
 function persistThemes(themes: SavedTheme[]) {
-  localStorage.setItem(STORAGE_THEMES, JSON.stringify(themes));
+  const serialized = JSON.stringify(themes);
+  try {
+    localStorage.setItem(STORAGE_THEMES, serialized);
+  } catch (err) {
+    // QuotaExceededError (standard) or NS_ERROR_DOM_QUOTA_REACHED (Firefox).
+    // Re-throw as a typed error so the theme editor can surface a useful
+    // message instead of silently dropping the save.
+    if (err instanceof DOMException && (err.name === 'QuotaExceededError' || err.name === 'NS_ERROR_DOM_QUOTA_REACHED')) {
+      throw new ThemeStorageQuotaError(serialized.length);
+    }
+    throw err;
+  }
 }
 
 function loadActiveThemeId(): string | null {
@@ -351,16 +381,17 @@ export default function App() {
     setLogoUrl(url);
   }, []);
 
+  // Persist first, then update state. This lets a QuotaExceededError propagate
+  // out to the caller (ThemeEditorView) instead of being swallowed inside a
+  // setState updater, and keeps persisted + in-memory state consistent.
   const handleSaveTheme = useCallback((t: SavedTheme) => {
-    setSavedThemes((prev) => {
-      const idx = prev.findIndex((s) => s.id === t.id);
-      const next = idx >= 0 ? prev.map((s) => (s.id === t.id ? t : s)) : [...prev, t];
-      persistThemes(next);
-      return next;
-    });
+    const idx = savedThemes.findIndex((s) => s.id === t.id);
+    const next = idx >= 0 ? savedThemes.map((s) => (s.id === t.id ? t : s)) : [...savedThemes, t];
+    persistThemes(next); // throws ThemeStorageQuotaError on localStorage quota
+    setSavedThemes(next);
     setActiveThemeId(t.id);
     persistActiveThemeId(t.id);
-  }, []);
+  }, [savedThemes]);
 
   const handleDeleteTheme = useCallback((id: string) => {
     setSavedThemes((prev) => {

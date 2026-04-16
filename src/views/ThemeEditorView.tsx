@@ -415,6 +415,9 @@ export default function ThemeEditorView({
   const [drawer2Open, setDrawer2Open] = useState(true);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [saveToastOpen, setSaveToastOpen] = useState(false);
+  // Error surface for save failures (decode error, storage quota, etc).
+  // Kept separate from the success toast so both can't display at once.
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   /* ---- editor state ---- */
   const [editorText, setEditorText] = useState('');
@@ -561,10 +564,17 @@ export default function ThemeEditorView({
   const handleSave = async () => {
     if (!themeName.trim() || isDuplicateName) return;
 
+    // Step 1: decode the uploaded image (may reject if the file is corrupt,
+    // truncated, or not actually an image despite its MIME type).
     let logoDataUrl: string | null = logoPreviewUrl;
-    // If a new file was uploaded, convert to data URL for persistence
     if (logoFile) {
-      logoDataUrl = await fileToDataUrl(logoFile);
+      try {
+        logoDataUrl = await fileToDataUrl(logoFile);
+      } catch (err) {
+        console.error('[theme] failed to decode uploaded logo', err);
+        setSaveError(t('themeEditor.logoDecodeFailed'));
+        return;
+      }
     }
 
     const theme: SavedTheme = {
@@ -579,7 +589,19 @@ export default function ThemeEditorView({
       logoIsDefault: logoFile ? false : savedThemes.find((s) => s.id === editingId)?.logoIsDefault,
     };
 
-    onSaveTheme(theme);
+    // Step 2: persist. handleSaveTheme throws ThemeStorageQuotaError when
+    // localStorage is full, which we surface so the user knows the save
+    // didn't land (otherwise they'd close the tab and lose everything).
+    try {
+      onSaveTheme(theme);
+    } catch (err) {
+      console.error('[theme] failed to persist theme', err);
+      // err.name matches the class name defined in App.tsx (ThemeStorageQuotaError)
+      const isQuota = err instanceof Error && err.name === 'ThemeStorageQuotaError';
+      setSaveError(isQuota ? t('themeEditor.storageFull') : t('themeEditor.saveFailed'));
+      return;
+    }
+
     setEditingId(theme.id);
     setLogoFile(null);
     setLogoPreviewUrl(logoDataUrl);
@@ -901,6 +923,18 @@ export default function ThemeEditorView({
       >
         <Alert onClose={() => setSaveToastOpen(false)} severity="success" variant="filled" sx={{ width: '100%' }}>
           {t('themeEditor.themeSaved')}
+        </Alert>
+      </Snackbar>
+
+      {/* Save error toast — stays open until dismissed so a failed save
+          can't be missed by a user who looked away. */}
+      <Snackbar
+        open={saveError !== null}
+        onClose={() => setSaveError(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setSaveError(null)} severity="error" variant="filled" sx={{ width: '100%' }}>
+          {saveError}
         </Alert>
       </Snackbar>
 
