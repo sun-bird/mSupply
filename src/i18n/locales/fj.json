@@ -67,7 +67,8 @@
     "systemActive": "Sa muri na gagadre ni nomu misini.",
     "darkActive": "Sa caka tiko na ituvatuva butobuto.",
     "lightActive": "Sa caka tiko na ituvatuva rarama.",
-    "language": "Vosa"
+    "language": "Vosa",
+    "theme": "Theme"
   },
   "loginSample": {
     "title": "Vakataki ni Curu",

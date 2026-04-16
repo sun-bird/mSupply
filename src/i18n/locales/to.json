@@ -67,7 +67,8 @@
     "systemActive": "ʻOku muimui ki he filifilinaga ʻo hoʻo sisitemi.",
     "darkActive": "Kuo ʻai ʻa e founga fakapoʻuli.",
     "lightActive": "Kuo ʻai ʻa e founga maama.",
-    "language": "Lea"
+    "language": "Lea",
+    "theme": "Theme"
   },
   "loginSample": {
     "title": "Sīpinga Hū",

@@ -211,7 +211,8 @@
     "systemActive": "Following your operating system preference.",
     "darkActive": "Dark mode is active.",
     "lightActive": "Light mode is active.",
-    "language": "Language"
+    "language": "Language",
+    "theme": "Theme"
   },
   "loginSample": {
     "title": "Login Sample",

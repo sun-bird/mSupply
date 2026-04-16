@@ -394,6 +394,18 @@ export default function App() {
     persistActiveThemeId(t.id);
   }, [savedThemes]);
 
+  // Apply an existing saved theme (from anywhere — preferences, theme editor
+   // dropdown, etc). Updates colour + logo + active id in one go so the UI
+   // reflects the change immediately.
+  const handleSelectTheme = useCallback((id: string) => {
+    const found = savedThemes.find((s) => s.id === id);
+    if (!found) return;
+    setPrimaryColor(found.primaryColor);
+    setLogoUrl(found.logoDataUrl);
+    setActiveThemeId(found.id);
+    persistActiveThemeId(found.id);
+  }, [savedThemes]);
+
   const handleDeleteTheme = useCallback((id: string) => {
     setSavedThemes((prev) => {
       const next = prev.filter((s) => s.id !== id);
@@ -416,6 +428,9 @@ export default function App() {
         colorMode={colorMode}
         onColorModeChange={handleColorModeChange}
         logoUrl={logoUrl ?? undefined}
+        savedThemes={savedThemes}
+        activeThemeId={activeThemeId}
+        onSelectTheme={handleSelectTheme}
       />
     );
   } else if (activePath === '/inventory/stock') {

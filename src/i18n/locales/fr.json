@@ -67,7 +67,8 @@
     "systemActive": "Suit la préférence de votre système d'exploitation.",
     "darkActive": "Le mode sombre est actif.",
     "lightActive": "Le mode clair est actif.",
-    "language": "Langue"
+    "language": "Langue",
+    "theme": "Thème"
   },
   "loginSample": {
     "title": "Exemple de connexion",

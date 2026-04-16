@@ -67,7 +67,8 @@
     "systemActive": "يتبع تفضيلات نظام التشغيل الخاص بك.",
     "darkActive": "الوضع الداكن مفعّل.",
     "lightActive": "الوضع الفاتح مفعّل.",
-    "language": "اللغة"
+    "language": "اللغة",
+    "theme": "النسق"
   },
   "loginSample": {
     "title": "نموذج تسجيل الدخول",

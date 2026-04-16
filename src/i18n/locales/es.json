@@ -67,7 +67,8 @@
     "systemActive": "Siguiendo la preferencia de su sistema operativo.",
     "darkActive": "El modo oscuro está activo.",
     "lightActive": "El modo claro está activo.",
-    "language": "Idioma"
+    "language": "Idioma",
+    "theme": "Tema"
   },
   "loginSample": {
     "title": "Ejemplo de inicio de sesión",

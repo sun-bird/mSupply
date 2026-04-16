@@ -11,6 +11,7 @@ import i18next from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { NavLayout } from '../components/nav-layout';
 import type { NavItem } from '../components/nav-layout';
+import type { SavedTheme } from './ThemeEditorView';
 
 export type ColorMode = 'light' | 'dark' | 'system';
 
@@ -20,6 +21,9 @@ interface PreferencesViewProps {
   colorMode: ColorMode;
   onColorModeChange: (mode: ColorMode) => void;
   logoUrl?: string;
+  savedThemes: SavedTheme[];
+  activeThemeId: string | null;
+  onSelectTheme: (id: string) => void;
 }
 
 export default function PreferencesView({
@@ -28,6 +32,9 @@ export default function PreferencesView({
   colorMode,
   onColorModeChange,
   logoUrl,
+  savedThemes,
+  activeThemeId,
+  onSelectTheme,
 }: PreferencesViewProps) {
   const { t } = useTranslation();
 
@@ -203,6 +210,81 @@ export default function PreferencesView({
             <MenuItem value="es" sx={{ fontSize: 13 }}>Español</MenuItem>
             <MenuItem value="fj" sx={{ fontSize: 13 }}>Vosa Vakaviti</MenuItem>
             <MenuItem value="to" sx={{ fontSize: 13 }}>Lea faka-Tonga</MenuItem>
+          </Select>
+        </Box>
+
+        {/* Theme card */}
+        <Box
+          sx={{
+            bgcolor: 'background.paper',
+            borderRadius: '10px',
+            boxShadow: '0px 0px 2px rgba(40,41,61,0.04), 0px 4px 8px rgba(96,97,112,0.16)',
+            p: 3,
+            mt: 3,
+          }}
+        >
+          <Typography
+            sx={{
+              fontFamily: 'Inter, sans-serif',
+              fontWeight: 500,
+              fontSize: 18,
+              lineHeight: '24px',
+              color: 'text.primary',
+              mb: 3,
+            }}
+          >
+            {t('preferences.theme')}
+          </Typography>
+
+          <Select
+            value={activeThemeId ?? ''}
+            onChange={(e) => onSelectTheme(e.target.value as string)}
+            size="small"
+            displayEmpty
+            renderValue={(val) => {
+              const found = savedThemes.find((s) => s.id === val);
+              return found?.themeName ?? '';
+            }}
+            sx={{
+              minWidth: 200,
+              bgcolor: 'background.paper',
+              borderRadius: '10px',
+              boxShadow: '0px 0px 2px rgba(40,41,61,0.04), 0px 4px 8px rgba(96,97,112,0.16)',
+              '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+              '& .MuiSelect-select': { textAlign: 'left' },
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 14,
+              fontWeight: 500,
+              color: 'text.secondary',
+            }}
+          >
+            {savedThemes.map((theme) => (
+              <MenuItem
+                key={theme.id}
+                value={theme.id}
+                sx={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 1.5 }}
+              >
+                {theme.logoDataUrl ? (
+                  <Box
+                    component="img"
+                    src={theme.logoDataUrl}
+                    alt=""
+                    sx={{ width: 20, height: 20, objectFit: 'contain', flexShrink: 0 }}
+                  />
+                ) : (
+                  <Box
+                    sx={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: '4px',
+                      bgcolor: theme.primaryColor,
+                      flexShrink: 0,
+                    }}
+                  />
+                )}
+                {theme.themeName}
+              </MenuItem>
+            ))}
           </Select>
         </Box>
       </Box>

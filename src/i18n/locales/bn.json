@@ -67,7 +67,8 @@
     "systemActive": "আপনার অপারেটিং সিস্টেমের পছন্দ অনুসরণ করা হচ্ছে।",
     "darkActive": "গাঢ় মোড সক্রিয়।",
     "lightActive": "হালকা মোড সক্রিয়।",
-    "language": "ভাষা"
+    "language": "ভাষা",
+    "theme": "থিম"
   },
   "loginSample": {
     "title": "লগইন নমুনা",
