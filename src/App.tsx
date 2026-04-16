@@ -40,20 +40,32 @@ import type { SavedTheme } from './views/ThemeEditorView';
 const DEFAULT_PRIMARY = '#E95C30';
 const STORAGE_THEMES = 'msupply-themes';
 const STORAGE_THEMES_VERSION = 'msupply-themes-version';
-const THEMES_VERSION = '4';
+const THEMES_VERSION = '7';
 const STORAGE_ACTIVE = 'msupply-active-theme-id';
 const STORAGE_COLOR_MODE = 'msupply-color-mode';
 
-// Convert imported images to data URLs for localStorage persistence
+// Convert imported images to data URLs for localStorage persistence.
+// Normalizes the source image to a long-edge between LOGO_RASTER_MIN and
+// LOGO_RASTER_MAX: tiny SVGs are scaled up so they render crisply in the
+// 80–140px preview, and huge source images are scaled down so the resulting
+// data URL fits within localStorage quotas (~5MB total across all themes).
+const LOGO_RASTER_MIN = 256;
+const LOGO_RASTER_MAX = 512;
 function imgToDataUrl(src: string): Promise<string> {
   return new Promise((resolve) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {
+      const srcW = img.width || LOGO_RASTER_MIN;
+      const srcH = img.height || LOGO_RASTER_MIN;
+      const longest = Math.max(srcW, srcH);
+      let scale = 1;
+      if (longest < LOGO_RASTER_MIN) scale = LOGO_RASTER_MIN / longest;
+      else if (longest > LOGO_RASTER_MAX) scale = LOGO_RASTER_MAX / longest;
       const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      canvas.getContext('2d')!.drawImage(img, 0, 0);
+      canvas.width = Math.round(srcW * scale);
+      canvas.height = Math.round(srcH * scale);
+      canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
       resolve(canvas.toDataURL('image/png'));
     };
     img.onerror = () => resolve('');
@@ -83,21 +95,46 @@ const THEME_LOGOS: Record<string, string> = {
   'default-salud': new URL('./assets/themes/salud.png', import.meta.url).href,
   'default-fiji': new URL('./assets/themes/fiji.png', import.meta.url).href,
   'default-nigeria': new URL('./assets/themes/nigeria.png', import.meta.url).href,
-  'default-hiviz-blue-ld': new URL('./assets/msupply-logo.svg', import.meta.url).href,
-  'default-hiviz-green-ld': new URL('./assets/msupply-logo.svg', import.meta.url).href,
-  'default-hiviz-amber-ld': new URL('./assets/msupply-logo.svg', import.meta.url).href,
-  'default-hiviz-blue-lo': new URL('./assets/msupply-logo.svg', import.meta.url).href,
-  'default-hiviz-green-lo': new URL('./assets/msupply-logo.svg', import.meta.url).href,
-  'default-hiviz-purple-lo': new URL('./assets/msupply-logo.svg', import.meta.url).href,
+  'default-hiviz-blue-ld': new URL('./assets/themes/hiviz-cone.png', import.meta.url).href,
+  'default-hiviz-green-ld': new URL('./assets/themes/hiviz-cone.png', import.meta.url).href,
+  'default-hiviz-amber-ld': new URL('./assets/themes/hiviz-cone.png', import.meta.url).href,
+  'default-hiviz-blue-lo': new URL('./assets/themes/hiviz-cone.png', import.meta.url).href,
+  'default-hiviz-green-lo': new URL('./assets/themes/hiviz-cone.png', import.meta.url).href,
+  'default-hiviz-purple-lo': new URL('./assets/themes/hiviz-cone.png', import.meta.url).href,
 };
 
-async function seedDefaultThemes(): Promise<SavedTheme[]> {
+async function seedDefaultThemes(existing: SavedTheme[] = []): Promise<SavedTheme[]> {
+  const existingById = new Map(existing.map((t) => [t.id, t]));
   const seeded: SavedTheme[] = [];
+
+  // For each default theme:
+  //   - If the user has uploaded their own logo (logoIsDefault === false),
+  //     preserve it untouched along with their customized colors/name.
+  //   - Otherwise (no prior entry, or prior logo was a seeded default),
+  //     re-rasterize the asset so quality improvements from imgToDataUrl
+  //     propagate to existing installations.
   for (const theme of DEFAULT_THEMES) {
+    const prior = existingById.get(theme.id);
+    const isUserLogo = prior && prior.logoIsDefault === false && prior.logoDataUrl;
+    if (isUserLogo) {
+      seeded.push({ ...prior });
+      continue;
+    }
     const logoSrc = THEME_LOGOS[theme.id];
     const logoDataUrl = logoSrc ? await imgToDataUrl(logoSrc) : null;
-    seeded.push({ ...theme, logoDataUrl });
+    seeded.push({
+      ...(prior ?? theme),
+      logoDataUrl,
+      logoIsDefault: true,
+    });
   }
+
+  // Preserve any custom (non-default) themes the user created.
+  const defaultIds = new Set(DEFAULT_THEMES.map((t) => t.id));
+  for (const t of existing) {
+    if (!defaultIds.has(t.id)) seeded.push(t);
+  }
+
   persistThemes(seeded);
   return seeded;
 }
@@ -281,10 +318,12 @@ export default function App() {
     persistColorMode(mode);
   }, []);
 
-  // Seed default themes with logos on first visit or when version changes
+  // Seed default themes with logos on first visit or when version changes.
+  // Passes the current saved themes so user uploads/customizations survive
+  // THEMES_VERSION bumps.
   useEffect(() => {
     if (!localStorage.getItem(STORAGE_THEMES) || localStorage.getItem(STORAGE_THEMES_VERSION) !== THEMES_VERSION) {
-      seedDefaultThemes().then((seeded) => {
+      seedDefaultThemes(savedThemes).then((seeded) => {
         setSavedThemes(seeded);
         localStorage.setItem(STORAGE_THEMES_VERSION, THEMES_VERSION);
       });

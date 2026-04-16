@@ -53,6 +53,13 @@ export interface SavedTheme {
   primaryColor: string;
   secondaryColor: string;
   logoDataUrl: string | null;
+  /**
+   * True when logoDataUrl was produced by seedDefaultThemes() (i.e. rasterized
+   * from an asset). False when the user explicitly uploaded a logo. Used by
+   * seedDefaultThemes() to decide whether a logo can be refreshed on a
+   * THEMES_VERSION bump — user uploads are always preserved.
+   */
+  logoIsDefault?: boolean;
 }
 
 /* ------------------------------------------------------------------ */
@@ -320,10 +327,34 @@ function buildThemeJson(themeName: string, primaryColor: string, secondaryColor:
 /*  Convert File to data URL for localStorage persistence             */
 /* ------------------------------------------------------------------ */
 
+// Keep in sync with LOGO_RASTER_MAX in App.tsx. Large uploads are downscaled
+// so the resulting data URL fits localStorage quotas (~5MB total across all
+// themes). 512px long-edge is plenty for the 80–140px preview.
+const LOGO_UPLOAD_MAX = 512;
+
 function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
+    reader.onload = () => {
+      const raw = reader.result as string;
+      // Rasterize through a canvas so we can downscale oversized uploads.
+      const img = new Image();
+      img.onload = () => {
+        const longest = Math.max(img.width, img.height);
+        const scale = longest > LOGO_UPLOAD_MAX ? LOGO_UPLOAD_MAX / longest : 1;
+        if (scale === 1) {
+          resolve(raw);
+          return;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.onerror = reject;
+      img.src = raw;
+    };
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
@@ -542,6 +573,10 @@ export default function ThemeEditorView({
       primaryColor,
       secondaryColor,
       logoDataUrl,
+      // If a new file was uploaded in this save, mark the logo as user-provided
+      // so it survives future default re-seeds. Otherwise preserve the prior
+      // flag (defaults remain flagged as default until the user replaces them).
+      logoIsDefault: logoFile ? false : savedThemes.find((s) => s.id === editingId)?.logoIsDefault,
     };
 
     onSaveTheme(theme);
