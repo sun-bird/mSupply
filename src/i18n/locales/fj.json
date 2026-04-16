@@ -2,6 +2,7 @@
   "nav": {
     "dashboard": "Tabana ni Veika",
     "replenishment": "Vakacurukuri",
+    "tenders": "Tenders",
     "purchaseOrders": "Oda ni Voli",
     "goodsReceived": "Iyau sa Tauri",
     "internalOrders": "Oda Vakaloma",
@@ -34,7 +35,7 @@
     "preferences": "Gagadre",
     "sync": "Vakasoqoni",
     "themes": "Ituvatuva",
-    "loginSample": "Vakataki ni Curu"
+    "loginSample": "Curu (Vakataki)"
   },
   "themeEditor": {
     "title": "Volavola ni Ituvatuva",
@@ -51,7 +52,10 @@
     "fileTooLarge": "E levu cake na faili mai na 1 MB",
     "fileMustBeImage": "Me yaga me itaba na faili",
     "dragDropLogo": "Draqa se laveta me vakacuruma na itaba",
-    "themeSaved": "Sa vakadodonutaki vinaka na ituvatuva"
+    "themeSaved": "Sa vakadodonutaki vinaka na ituvatuva",
+    "logoDecodeFailed": "Sega ni rawa ni wilika na itaba — e rairai sa vakacacani se sega ni vakadonui na ivakarau.",
+    "storageFull": "Sa sinai na itikotiko ni browser. Sikova laivi e dua na theme sega ni vakayagataki qai tovolea tale.",
+    "saveFailed": "Sega ni rawa ni maroroya na theme. Yalovinaka tovolea tale."
   },
   "preferences": {
     "title": "Gagadre",

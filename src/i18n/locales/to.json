@@ -2,6 +2,7 @@
   "nav": {
     "dashboard": "Pesipesi",
     "replenishment": "Fakafonu",
+    "tenders": "Tenders",
     "purchaseOrders": "Ota Fakatau",
     "goodsReceived": "Koloa kuo Ma'u",
     "internalOrders": "Ota Fakalotofonua",
@@ -34,7 +35,7 @@
     "preferences": "Filifilinaga",
     "sync": "Fakafehoanaki",
     "themes": "Tīmi",
-    "loginSample": "Sīpinga Hū"
+    "loginSample": "Hū (Sīpinga)"
   },
   "themeEditor": {
     "title": "Me'a Liliu Tīmi",
@@ -51,7 +52,10 @@
     "fileTooLarge": "Kuo lahi ange 'a e faile 'i he 1 MB",
     "fileMustBeImage": "Kuo pau ke 'imisi 'a e faile",
     "dragDropLogo": "Tō pe lomi'i ke 'apalōtí 'a e logo",
-    "themeSaved": "Kuo fakafou lelei ʻa e kaveinga"
+    "themeSaved": "Kuo fakafou lelei ʻa e kaveinga",
+    "logoDecodeFailed": "Naʻe ʻikai lava ke lau ʻa e taá — mahalo ʻoku maumauʻi pe ʻoku ʻikai poupouʻi ʻa hono fōmatá.",
+    "storageFull": "Kuo fonu ʻa e tukuʻanga ʻo e polokalamá. Tāmateʻi ha teima ʻoku ʻikai ngāueʻaki pea toe ʻahiʻahi.",
+    "saveFailed": "Naʻe ʻikai lava ke fakahū ʻa e teimá. Kātaki ʻo toe ʻahiʻahi."
   },
   "preferences": {
     "title": "Filifilinaga",
