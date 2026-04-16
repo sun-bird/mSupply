@@ -152,6 +152,7 @@ export default function PreferencesView({
               fontSize: 12,
               color: 'text.secondary',
               mt: 2,
+              textAlign: 'center',
             }}
           >
             {colorMode === 'system'
@@ -161,56 +162,6 @@ export default function PreferencesView({
                 : t('preferences.lightActive')}
           </Typography>
 
-        </Box>
-
-        {/* Language card */}
-        <Box
-          sx={{
-            bgcolor: 'background.paper',
-            borderRadius: '10px',
-            boxShadow: '0px 0px 2px rgba(40,41,61,0.04), 0px 4px 8px rgba(96,97,112,0.16)',
-            p: 3,
-            mt: 3,
-          }}
-        >
-          <Typography
-            sx={{
-              fontFamily: 'Inter, sans-serif',
-              fontWeight: 500,
-              fontSize: 18,
-              lineHeight: '24px',
-              color: 'text.primary',
-              mb: 3,
-            }}
-          >
-            {t('preferences.language')}
-          </Typography>
-
-          <Select
-            value={i18next.language}
-            onChange={(e) => i18next.changeLanguage(e.target.value as string)}
-            size="small"
-            sx={{
-              minWidth: 200,
-              bgcolor: 'background.paper',
-              borderRadius: '10px',
-              boxShadow: '0px 0px 2px rgba(40,41,61,0.04), 0px 4px 8px rgba(96,97,112,0.16)',
-              '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-              '& .MuiSelect-select': { textAlign: 'left' },
-              fontFamily: 'Inter, sans-serif',
-              fontSize: 14,
-              fontWeight: 500,
-              color: 'text.secondary',
-            }}
-          >
-            <MenuItem value="en" sx={{ fontSize: 13 }}>English</MenuItem>
-            <MenuItem value="ar" sx={{ fontSize: 13 }}>العربية</MenuItem>
-            <MenuItem value="bn" sx={{ fontSize: 13 }}>বাংলা</MenuItem>
-            <MenuItem value="fr" sx={{ fontSize: 13 }}>Français</MenuItem>
-            <MenuItem value="es" sx={{ fontSize: 13 }}>Español</MenuItem>
-            <MenuItem value="fj" sx={{ fontSize: 13 }}>Vosa Vakaviti</MenuItem>
-            <MenuItem value="to" sx={{ fontSize: 13 }}>Lea faka-Tonga</MenuItem>
-          </Select>
         </Box>
 
         {/* Theme card */}
@@ -285,6 +236,56 @@ export default function PreferencesView({
                 {theme.themeName}
               </MenuItem>
             ))}
+          </Select>
+        </Box>
+
+        {/* Language card */}
+        <Box
+          sx={{
+            bgcolor: 'background.paper',
+            borderRadius: '10px',
+            boxShadow: '0px 0px 2px rgba(40,41,61,0.04), 0px 4px 8px rgba(96,97,112,0.16)',
+            p: 3,
+            mt: 3,
+          }}
+        >
+          <Typography
+            sx={{
+              fontFamily: 'Inter, sans-serif',
+              fontWeight: 500,
+              fontSize: 18,
+              lineHeight: '24px',
+              color: 'text.primary',
+              mb: 3,
+            }}
+          >
+            {t('preferences.language')}
+          </Typography>
+
+          <Select
+            value={i18next.language}
+            onChange={(e) => i18next.changeLanguage(e.target.value as string)}
+            size="small"
+            sx={{
+              minWidth: 200,
+              bgcolor: 'background.paper',
+              borderRadius: '10px',
+              boxShadow: '0px 0px 2px rgba(40,41,61,0.04), 0px 4px 8px rgba(96,97,112,0.16)',
+              '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+              '& .MuiSelect-select': { textAlign: 'left' },
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 14,
+              fontWeight: 500,
+              color: 'text.secondary',
+            }}
+          >
+            <MenuItem value="en" sx={{ fontSize: 13 }}>English</MenuItem>
+            <MenuItem value="ar" sx={{ fontSize: 13 }}>العربية</MenuItem>
+            <MenuItem value="bn" sx={{ fontSize: 13 }}>বাংলা</MenuItem>
+            <MenuItem value="fr" sx={{ fontSize: 13 }}>Français</MenuItem>
+            <MenuItem value="es" sx={{ fontSize: 13 }}>Español</MenuItem>
+            <MenuItem value="fj" sx={{ fontSize: 13 }}>Vosa Vakaviti</MenuItem>
+            <MenuItem value="to" sx={{ fontSize: 13 }}>Lea faka-Tonga</MenuItem>
           </Select>
         </Box>
       </Box>
