@@ -27,11 +27,11 @@ export default function LoginSampleView({
   return (
     <NavLayout
       navItems={navItems}
-      activePath="/settings/login-sample"
+      activePath="/login-sample"
       logoUrl={displayLogo}
       headerProps={{
         title: t('loginSample.title'),
-        onBack: () => onNavigate('/settings/themes'),
+        onBack: () => onNavigate('/dashboard'),
         comboActions: [
           {
             icon: <HugeiconsIcon icon={PrinterIcon} size={20} />,

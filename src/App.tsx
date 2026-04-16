@@ -3,6 +3,7 @@ import {
   DeliveryTruck02Icon,
   FirstAidKitIcon,
   HelpCircleIcon,
+  Login01Icon,
   PackageOpenIcon,
   PackageProcessIcon,
   PieChartIcon,
@@ -298,9 +299,9 @@ function buildNavItems(t: (key: string) => string): NavItem[] {
         { label: t('nav.preferences'), href: '/settings/preferences' },
         { label: t('nav.sync'), href: '/settings/sync' },
         { label: t('nav.themes'), href: '/settings/themes' },
-        { label: t('nav.loginSample'), href: '/settings/login-sample' },
       ],
     },
+    { label: t('nav.loginSample'), icon: <HugeiconsIcon icon={Login01Icon} size={22} />, href: '/login-sample' },
   ];
 }
 
@@ -449,7 +450,7 @@ export default function App() {
         onDeleteTheme={handleDeleteTheme}
       />
     );
-  } else if (activePath === '/settings/login-sample') {
+  } else if (activePath === '/login-sample') {
     content = (
       <LoginSampleView
         navItems={wiredNavItems}
