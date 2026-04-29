@@ -5,6 +5,7 @@ import {
   HelpCircleIcon,
   MoreHorizontalIcon,
   NoteIcon,
+  Package02Icon,
   PrinterIcon,
   Search01Icon,
 } from '@hugeicons/core-free-icons';
@@ -30,6 +31,8 @@ import {
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLayout } from '../components/nav-layout';
+import EmptyStateView from '../components/EmptyStateView';
+import { getTenderSteps } from '../components/tender/tender.types';
 
 const ThinCheckboxIcon = () => (
   <SvgIcon sx={{ fontSize: 18 }}>
@@ -71,6 +74,8 @@ interface TenderItemsViewProps {
 
 export default function TenderItemsView({ navItems, onNavigate, tender, logoUrl }: TenderItemsViewProps) {
   const { t } = useTranslation();
+  const stepStatus = getTenderSteps(tender.status).find((s) => s.key === 'items')?.status;
+  const showEmpty = stepStatus === 'incomplete';
   const theme = useTheme();
   const primaryColor = theme.palette.primary.main;
   const [searchQuery, setSearchQuery] = useState('');
@@ -146,6 +151,15 @@ export default function TenderItemsView({ navItems, onNavigate, tender, logoUrl 
         isOnline: true,
       }}
     >
+      {showEmpty ? (
+        <EmptyStateView
+          icon={Package02Icon}
+          description={t('emptyState.itemsDescription')}
+          actionLabel={t('emptyState.backToOverview')}
+          onAction={() => onNavigate('/replenishment/tenders/detail')}
+        />
+      ) : (
+        <>
       {/* Toolbar */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mt: 2 }}>
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
@@ -336,6 +350,8 @@ export default function TenderItemsView({ navItems, onNavigate, tender, logoUrl 
           {t('tenderItems.next')}
         </Button>
       </Box>
+        </>
+      )}
     </NavLayout>
   );
 }

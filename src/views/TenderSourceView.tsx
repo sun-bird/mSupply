@@ -8,6 +8,7 @@ import {
   PrinterIcon,
   Search01Icon,
   Upload04Icon,
+  UserGroupIcon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
@@ -37,6 +38,8 @@ const ThinCheckboxIcon = () => (
   </SvgIcon>
 );
 import { NavLayout } from '../components/nav-layout';
+import EmptyStateView from '../components/EmptyStateView';
+import { getTenderSteps } from '../components/tender/tender.types';
 import type { NavItem } from '../components/nav-layout';
 import StatusController from '../components/tender/StatusController';
 import SupplierSidebar from '../components/tender/SupplierSidebar';
@@ -66,6 +69,8 @@ interface TenderSourceViewProps {
 
 export default function TenderSourceView({ navItems, onNavigate, tender, logoUrl }: TenderSourceViewProps) {
   const { t } = useTranslation();
+  const stepStatus = getTenderSteps(tender.status).find((s) => s.key === 'source')?.status;
+  const showEmpty = stepStatus === 'incomplete';
   const theme = useTheme();
   const primaryColor = theme.palette.primary.main;
   const [searchQuery, setSearchQuery] = useState('');
@@ -140,6 +145,15 @@ export default function TenderSourceView({ navItems, onNavigate, tender, logoUrl
         isOnline: true,
       }}
     >
+      {showEmpty ? (
+        <EmptyStateView
+          icon={UserGroupIcon}
+          description={t('emptyState.sourceDescription')}
+          actionLabel={t('emptyState.backToOverview')}
+          onAction={() => onNavigate('/replenishment/tenders/detail')}
+        />
+      ) : (
+        <>
       <Box sx={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Main content */}
         <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
@@ -359,6 +373,8 @@ export default function TenderSourceView({ navItems, onNavigate, tender, logoUrl
           />
         )}
       </Box>
+        </>
+      )}
     </NavLayout>
   );
 }

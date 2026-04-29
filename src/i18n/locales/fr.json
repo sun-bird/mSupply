@@ -234,5 +234,13 @@
     "finaliseTender": "Finaliser l'appel d'offres",
     "tenderCreated": "Appel d'offres créé le {{date}}.",
     "viewLog": "Voir le journal"
+  },
+  "emptyState": {
+    "planDescription": "Cet appel d'offres n'a pas encore de plan. Définissez les critères et téléversez vos documents d'approvisionnement pour commencer.",
+    "itemsDescription": "Une fois le plan en place, ajoutez les articles pour lesquels vous souhaitez que les fournisseurs soumettent une offre.",
+    "sourceDescription": "Les fournisseurs apparaîtront ici dès que vous les aurez invités à soumissionner.",
+    "evaluateDescription": "L'évaluation deviendra disponible dès que les offres des fournisseurs commenceront à arriver.",
+    "awardDescription": "Une fois les offres évaluées, vous pourrez attribuer les bons de commande aux fournisseurs retenus.",
+    "backToOverview": "Retour à la vue d'ensemble"
   }
 }

@@ -6,6 +6,7 @@ import {
   NoteIcon,
   PrinterIcon,
   Task01Icon,
+  TaskEdit01Icon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
@@ -22,6 +23,8 @@ import {
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLayout } from '../components/nav-layout';
+import EmptyStateView from '../components/EmptyStateView';
+import { getTenderSteps } from '../components/tender/tender.types';
 import type { NavItem } from '../components/nav-layout';
 import DocumentDropZone from '../components/tender/DocumentDropZone';
 import DocumentList from '../components/tender/DocumentList';
@@ -113,6 +116,8 @@ function FormRow({ label, children, fullWidth }: FormRowProps) {
 
 export default function TenderPlanView({ navItems, onNavigate, tender, logoUrl }: TenderPlanViewProps) {
   const { t } = useTranslation();
+  const stepStatus = getTenderSteps(tender.status).find((s) => s.key === 'plan')?.status;
+  const showEmpty = stepStatus === 'incomplete';
   const theme = useTheme();
   const primaryColor = theme.palette.primary.main;
 
@@ -166,6 +171,15 @@ export default function TenderPlanView({ navItems, onNavigate, tender, logoUrl }
         isOnline: true,
       }}
     >
+      {showEmpty ? (
+        <EmptyStateView
+          icon={TaskEdit01Icon}
+          description={t('emptyState.planDescription')}
+          actionLabel={t('emptyState.backToOverview')}
+          onAction={() => onNavigate('/replenishment/tenders/detail')}
+        />
+      ) : (
+        <>
       <Box sx={{ maxWidth: 800, mx: 'auto', mt: 2, pb: 4 }}>
         {/* Tender Details Section */}
         <Box sx={{ bgcolor: 'background.paper', borderRadius: '10px', mb: 2, overflow: 'hidden' }}>
@@ -444,6 +458,8 @@ export default function TenderPlanView({ navItems, onNavigate, tender, logoUrl }
           </Button>
         </Box>
       </Box>
+        </>
+      )}
     </NavLayout>
   );
 }

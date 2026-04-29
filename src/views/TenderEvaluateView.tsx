@@ -1,6 +1,7 @@
 import {
   ArrowDown01Icon,
   EyeIcon,
+  FileEditIcon,
   HelpCircleIcon,
   NoteIcon,
   PrinterIcon,
@@ -29,6 +30,8 @@ import {
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLayout } from '../components/nav-layout';
+import EmptyStateView from '../components/EmptyStateView';
+import { getTenderSteps } from '../components/tender/tender.types';
 import type { NavItem } from '../components/nav-layout';
 import StatusController from '../components/tender/StatusController';
 import type { TenderRow } from './TendersView';
@@ -72,6 +75,8 @@ interface TenderEvaluateViewProps {
 
 export default function TenderEvaluateView({ navItems, onNavigate, tender, logoUrl }: TenderEvaluateViewProps) {
   const { t } = useTranslation();
+  const stepStatus = getTenderSteps(tender.status).find((s) => s.key === 'evaluate')?.status;
+  const showEmpty = stepStatus === 'incomplete';
   const theme = useTheme();
   const primaryColor = theme.palette.primary.main;
   const [searchQuery, setSearchQuery] = useState('');
@@ -144,6 +149,15 @@ export default function TenderEvaluateView({ navItems, onNavigate, tender, logoU
         isOnline: true,
       }}
     >
+      {showEmpty ? (
+        <EmptyStateView
+          icon={FileEditIcon}
+          description={t('emptyState.evaluateDescription')}
+          actionLabel={t('emptyState.backToOverview')}
+          onAction={() => onNavigate('/replenishment/tenders/detail')}
+        />
+      ) : (
+        <>
       <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
         {/* Info Banner */}
         <Box
@@ -348,6 +362,8 @@ export default function TenderEvaluateView({ navItems, onNavigate, tender, logoU
           </TableContainer>
         </Box>
       </Box>
+        </>
+      )}
     </NavLayout>
   );
 }

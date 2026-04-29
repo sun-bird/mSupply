@@ -1,5 +1,6 @@
 import {
   ArrowDown01Icon,
+  AwardIcon,
   EyeIcon,
   HelpCircleIcon,
   NoteIcon,
@@ -28,6 +29,8 @@ import {
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLayout } from '../components/nav-layout';
+import EmptyStateView from '../components/EmptyStateView';
+import { getTenderSteps } from '../components/tender/tender.types';
 import type { NavItem } from '../components/nav-layout';
 import StatusController from '../components/tender/StatusController';
 import type { TenderRow } from './TendersView';
@@ -86,6 +89,8 @@ interface TenderAwardViewProps {
 
 export default function TenderAwardView({ navItems, onNavigate, tender, logoUrl }: TenderAwardViewProps) {
   const { t } = useTranslation();
+  const stepStatus = getTenderSteps(tender.status).find((s) => s.key === 'award')?.status;
+  const showEmpty = stepStatus === 'incomplete';
   const theme = useTheme();
   const primaryColor = theme.palette.primary.main;
   const [searchQuery, setSearchQuery] = useState('');
@@ -168,6 +173,15 @@ export default function TenderAwardView({ navItems, onNavigate, tender, logoUrl 
         isOnline: true,
       }}
     >
+      {showEmpty ? (
+        <EmptyStateView
+          icon={AwardIcon}
+          description={t('emptyState.awardDescription')}
+          actionLabel={t('emptyState.backToOverview')}
+          onAction={() => onNavigate('/replenishment/tenders/detail')}
+        />
+      ) : (
+        <>
       <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
         {/* Info Banner */}
         <Box
@@ -373,6 +387,8 @@ export default function TenderAwardView({ navItems, onNavigate, tender, logoUrl 
           </TableContainer>
         </Box>
       </Box>
+        </>
+      )}
     </NavLayout>
   );
 }
