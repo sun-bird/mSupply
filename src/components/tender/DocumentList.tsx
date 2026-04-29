@@ -119,7 +119,7 @@ export default function DocumentList({ documents, onRemove }: DocumentListProps)
           {/* File-type badge — colour and label derived from the extension.
               Wrapped in a fixed-width column so file names line up across
               rows regardless of badge label length (PDF vs DOCX vs WEBP). */}
-          <Box sx={{ width: 44, flexShrink: 0, display: 'flex', justifyContent: 'flex-start' }}>
+          <Box sx={{ width: 47, flexShrink: 0, display: 'flex', justifyContent: 'flex-start' }}>
             <Box
               sx={{
                 minWidth: 28,
