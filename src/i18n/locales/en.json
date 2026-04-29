@@ -241,6 +241,6 @@
     "sourceDescription": "Suppliers will appear here once you've invited them to bid on this tender.",
     "evaluateDescription": "Evaluation becomes available once bids start arriving from your suppliers.",
     "awardDescription": "After bids have been evaluated, you can award purchase orders to your selected suppliers.",
-    "backToOverview": "Back to Tender Overview"
+    "backToOverview": "Tender Overview"
   }
 }
