@@ -1,7 +1,7 @@
-import { ArrowDown01Icon } from '@hugeicons/core-free-icons';
+import { ArrowDown01Icon, Cancel01Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Box, Collapse, IconButton, InputBase, Typography } from '@mui/material';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 export interface Supplier {
@@ -29,11 +29,16 @@ function perfColor(value: number): string {
 interface SectionProps {
   title: string;
   defaultOpen?: boolean;
+  /** When this number changes (and is non-zero), the section force-opens. */
+  forceOpenKey?: number;
   children?: React.ReactNode;
 }
 
-function Section({ title, defaultOpen = false, children }: SectionProps) {
+function Section({ title, defaultOpen = false, forceOpenKey, children }: SectionProps) {
   const [open, setOpen] = useState(defaultOpen);
+  useEffect(() => {
+    if (forceOpenKey && forceOpenKey > 0) setOpen(true);
+  }, [forceOpenKey]);
   return (
     <Box sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
       <Box
@@ -67,10 +72,38 @@ function Section({ title, defaultOpen = false, children }: SectionProps) {
 interface SupplierSidebarProps {
   supplier: Supplier;
   onCommentChange?: (code: string, comment: string) => void;
+  /** Optional close handler; when provided an X button appears in the header. */
+  onClose?: () => void;
+  /**
+   * When this number changes (and is non-zero), the Comments section is
+   * force-opened, scrolled into view, the textarea focused, and a brief
+   * outline flashes to draw the user's attention. Used by the in-table
+   * comment icon to deep-link straight to a supplier's note.
+   */
+  highlightCommentsKey?: number;
 }
 
-export default function SupplierSidebar({ supplier, onCommentChange }: SupplierSidebarProps) {
+export default function SupplierSidebar({ supplier, onCommentChange, onClose, highlightCommentsKey }: SupplierSidebarProps) {
   const { t } = useTranslation();
+  const commentsSectionRef = useRef<HTMLDivElement>(null);
+  const commentInputRef = useRef<HTMLTextAreaElement>(null);
+  const [flashing, setFlashing] = useState(false);
+
+  useEffect(() => {
+    if (!highlightCommentsKey) return;
+    // Defer so the Section's force-open transition has a chance to render
+    // before we measure/scroll.
+    const id = window.setTimeout(() => {
+      commentsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      commentInputRef.current?.focus();
+    }, 50);
+    setFlashing(true);
+    const fadeId = window.setTimeout(() => setFlashing(false), 1200);
+    return () => {
+      window.clearTimeout(id);
+      window.clearTimeout(fadeId);
+    };
+  }, [highlightCommentsKey]);
 
   return (
     <Box
@@ -91,13 +124,35 @@ export default function SupplierSidebar({ supplier, onCommentChange }: SupplierS
       }}
     >
       {/* Header */}
-      <Box sx={{ px: 2.5, py: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Typography sx={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'text.secondary' }}>
-          {supplier.code}
-        </Typography>
-        <Typography sx={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: 16, color: 'text.primary', lineHeight: '22px' }}>
-          {supplier.name}
-        </Typography>
+      <Box
+        sx={{
+          px: 2.5,
+          py: 2,
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: 1,
+        }}
+      >
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography sx={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'text.secondary' }}>
+            {supplier.code}
+          </Typography>
+          <Typography sx={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: 16, color: 'text.primary', lineHeight: '22px' }}>
+            {supplier.name}
+          </Typography>
+        </Box>
+        {onClose && (
+          <IconButton
+            size="small"
+            onClick={onClose}
+            aria-label="Close"
+            sx={{ color: 'text.secondary', mt: -0.5, mr: -0.5 }}
+          >
+            <HugeiconsIcon icon={Cancel01Icon} size={18} />
+          </IconButton>
+        )}
       </Box>
 
       {/* Performance */}
@@ -140,27 +195,43 @@ export default function SupplierSidebar({ supplier, onCommentChange }: SupplierS
       <Section title={t('tenderSource.pastTenders')} />
 
       {/* Comments */}
-      <Section title={t('tenderSource.commentsInternal')} defaultOpen>
-        <InputBase
-          multiline
-          minRows={2}
-          placeholder={t('tenderSource.commentPlaceholder')}
-          value={supplier.comment}
-          onChange={(e) => onCommentChange?.(supplier.code, e.target.value)}
-          sx={{
-            width: '100%',
-            minHeight: 40,
-            bgcolor: 'action.hover',
-            borderRadius: '8px',
-            p: 1.5,
-            fontFamily: 'Inter, sans-serif',
-            fontSize: 13,
-            color: 'text.primary',
-            lineHeight: '20px',
-            alignItems: 'flex-start',
-          }}
-        />
-      </Section>
+      <Box
+        ref={commentsSectionRef}
+        sx={{
+          transition: 'box-shadow 0.4s ease, background-color 0.4s ease',
+          boxShadow: flashing
+            ? 'inset 0 0 0 2px #3E7BFA'
+            : 'inset 0 0 0 0 rgba(62,123,250,0)',
+          bgcolor: flashing ? 'rgba(62,123,250,0.08)' : 'transparent',
+        }}
+      >
+        <Section
+          title={t('tenderSource.commentsInternal')}
+          defaultOpen
+          forceOpenKey={highlightCommentsKey}
+        >
+          <InputBase
+            multiline
+            minRows={2}
+            inputRef={commentInputRef}
+            placeholder={t('tenderSource.commentPlaceholder')}
+            value={supplier.comment}
+            onChange={(e) => onCommentChange?.(supplier.code, e.target.value)}
+            sx={{
+              width: '100%',
+              minHeight: 40,
+              bgcolor: 'action.hover',
+              borderRadius: '8px',
+              p: 1.5,
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 13,
+              color: 'text.primary',
+              lineHeight: '20px',
+              alignItems: 'flex-start',
+            }}
+          />
+        </Section>
+      </Box>
     </Box>
   );
 }

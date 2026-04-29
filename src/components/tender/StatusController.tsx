@@ -7,11 +7,11 @@ const STEPS = ['plan', 'items', 'source', 'evaluate', 'award'] as const;
 type Step = (typeof STEPS)[number];
 
 const STEP_ROUTES: Record<string, string> = {
-  plan: '/replenishment/tenders/plan',
-  items: '/replenishment/tenders/items',
-  source: '/replenishment/tenders/source',
-  evaluate: '/replenishment/tenders/evaluate',
-  award: '/replenishment/tenders/award',
+  plan: '/tenders/plan',
+  items: '/tenders/items',
+  source: '/tenders/source',
+  evaluate: '/tenders/evaluate',
+  award: '/tenders/award',
 };
 
 interface StatusControllerProps {

@@ -72,10 +72,17 @@
     "evaluateDescription": "Evaluate bids from suppliers",
     "award": "Award",
     "awardDescription": "Award purchase orders to winning suppliers",
-    "view": "View",
     "finaliseTender": "Finalise Tender",
     "tenderCreated": "Tender Created {{date}}.",
-    "viewLog": "View Log"
+    "viewLog": "View Log",
+    "countDocuments_one": "{{count}} document",
+    "countDocuments_other": "{{count}} documents",
+    "countItems_one": "{{count}} item",
+    "countItems_other": "{{count}} items",
+    "countSuppliers_one": "{{count}} supplier",
+    "countSuppliers_other": "{{count}} suppliers",
+    "countBidsEvaluated_one": "{{count}} bid evaluated",
+    "countBidsEvaluated_other": "{{count}} bids evaluated"
   },
   "tenderPlan": {
     "title": "Plan",
@@ -237,10 +244,10 @@
   },
   "emptyState": {
     "planDescription": "This tender doesn't have a plan yet. Set the criteria and upload your procurement documents to get started.",
-    "itemsDescription": "Once the plan is in place, add the items you'd like suppliers to quote on.",
-    "sourceDescription": "Suppliers will appear here once you've invited them to bid on this tender.",
-    "evaluateDescription": "Evaluation becomes available once bids start arriving from your suppliers.",
-    "awardDescription": "After bids have been evaluated, you can award purchase orders to your selected suppliers.",
-    "backToOverview": "Tender Overview"
+    "itemsDescription": "There are currently no items in this tender. Add items to continue.",
+    "sourceDescription": "Suppliers will appear here once you've invited them to bid",
+    "evaluateDescription": "Source bids from suppliers to unlock the evaluation step",
+    "awardDescription": "Bids need to be evaluated before awarding tenders",
+    "backToOverview": "Tender overview"
   }
 }

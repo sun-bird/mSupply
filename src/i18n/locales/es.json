@@ -230,17 +230,24 @@
     "evaluateDescription": "Evaluar las ofertas de los proveedores",
     "award": "Adjudicar",
     "awardDescription": "Adjudicar órdenes de compra a los proveedores seleccionados",
-    "view": "Ver",
     "finaliseTender": "Finalizar licitación",
     "tenderCreated": "Licitación creada el {{date}}.",
-    "viewLog": "Ver registro"
+    "viewLog": "Ver registro",
+    "countDocuments_one": "{{count}} documento",
+    "countDocuments_other": "{{count}} documentos",
+    "countItems_one": "{{count}} artículo",
+    "countItems_other": "{{count}} artículos",
+    "countSuppliers_one": "{{count}} proveedor",
+    "countSuppliers_other": "{{count}} proveedores",
+    "countBidsEvaluated_one": "{{count}} oferta evaluada",
+    "countBidsEvaluated_other": "{{count}} ofertas evaluadas"
   },
   "emptyState": {
     "planDescription": "Esta licitación aún no tiene un plan. Defina los criterios y cargue los documentos de adquisición para comenzar.",
-    "itemsDescription": "Una vez establecido el plan, agregue los artículos para los que desea que los proveedores presenten ofertas.",
-    "sourceDescription": "Los proveedores aparecerán aquí en cuanto los invite a presentar ofertas para esta licitación.",
-    "evaluateDescription": "La evaluación estará disponible una vez que comiencen a llegar las ofertas de los proveedores.",
-    "awardDescription": "Después de evaluar las ofertas, podrá adjudicar las órdenes de compra a los proveedores seleccionados.",
+    "itemsDescription": "Actualmente no hay artículos en esta licitación. Agregue artículos para continuar.",
+    "sourceDescription": "Los proveedores aparecerán aquí una vez que los haya invitado a presentar ofertas",
+    "evaluateDescription": "Solicite ofertas a los proveedores para desbloquear la fase de evaluación",
+    "awardDescription": "Las ofertas deben evaluarse antes de adjudicar las licitaciones",
     "backToOverview": "Vista general"
   }
 }

@@ -8,7 +8,6 @@ import {
   PrinterIcon,
   Search01Icon,
   Upload04Icon,
-  UserGroupIcon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
@@ -29,7 +28,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const ThinCheckboxIcon = () => (
@@ -82,6 +81,30 @@ export default function TenderSourceView({ navItems, onNavigate, tender, logoUrl
     Object.fromEntries(MOCK_SUPPLIERS.map((s) => [s.code, s.comment]))
   );
 
+  // Refs used to dismiss the supplier sidebar on outside-clicks. The table is
+  // excluded so clicking another row continues to *switch* the sidebar to
+  // that supplier rather than closing it.
+  const sidebarWrapperRef = useRef<HTMLDivElement>(null);
+  const tableRef = useRef<HTMLDivElement>(null);
+
+  // Bumped each time the user clicks the in-row comment icon so the sidebar
+  // re-runs its highlight effect (force-open Comments, scroll, focus, flash)
+  // even when the same supplier is already selected.
+  const [commentHighlightKey, setCommentHighlightKey] = useState(0);
+
+  useEffect(() => {
+    if (!selectedSupplier) return;
+    function handleMouseDown(e: MouseEvent) {
+      const target = e.target as Node | null;
+      if (!target) return;
+      if (sidebarWrapperRef.current?.contains(target)) return;
+      if (tableRef.current?.contains(target)) return;
+      setSelectedSupplier(null);
+    }
+    document.addEventListener('mousedown', handleMouseDown);
+    return () => document.removeEventListener('mousedown', handleMouseDown);
+  }, [selectedSupplier]);
+
   const handleSort = (key: string) => {
     if (sortKey === key) {
       setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
@@ -122,12 +145,12 @@ export default function TenderSourceView({ navItems, onNavigate, tender, logoUrl
   return (
     <NavLayout
       navItems={navItems}
-      activePath="/replenishment/tenders"
+      activePath="/tenders"
       logoUrl={logoUrl}
       headerProps={{
         title: `${tender.serial} > ${tender.description}`,
         afterTitle: <StatusController activeStep="source" onNavigate={onNavigate} />,
-        onBack: () => onNavigate('/replenishment/tenders/detail'),
+        onBack: () => onNavigate('/tenders/detail'),
         primaryAction: {
           label: t('tenderSource.addSupplier'),
           icon: <HugeiconsIcon icon={AddCircleIcon} size={18} color={primaryColor} />,
@@ -147,10 +170,9 @@ export default function TenderSourceView({ navItems, onNavigate, tender, logoUrl
     >
       {showEmpty ? (
         <EmptyStateView
-          icon={UserGroupIcon}
           description={t('emptyState.sourceDescription')}
           actionLabel={t('emptyState.backToOverview')}
-          onAction={() => onNavigate('/replenishment/tenders/detail')}
+          onAction={() => onNavigate('/tenders/detail')}
         />
       ) : (
         <>
@@ -218,7 +240,7 @@ export default function TenderSourceView({ navItems, onNavigate, tender, logoUrl
             scrollbarColor: (t: any) => `${t.palette.text.disabled} ${t.palette.action.hover}`,
             scrollbarWidth: 'thin',
           }}>
-            <TableContainer>
+            <TableContainer ref={tableRef}>
               <Table size="small" sx={{ fontFamily: 'Inter, sans-serif' }}>
                 <TableHead>
                   <TableRow>
@@ -318,7 +340,18 @@ export default function TenderSourceView({ navItems, onNavigate, tender, logoUrl
                         </TableCell>
                         <TableCell sx={{ py: '10px', textAlign: 'center', width: 40 }}>
                           {(comments[supplier.code] || supplier.comment) ? (
-                            <HugeiconsIcon icon={Comment01Icon} size={16} color={theme.palette.text.secondary} />
+                            <IconButton
+                              size="small"
+                              aria-label="View comment"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedSupplier(supplier);
+                                setCommentHighlightKey((k) => k + 1);
+                              }}
+                              sx={{ color: 'text.secondary', p: 0.5 }}
+                            >
+                              <HugeiconsIcon icon={Comment01Icon} size={16} color={theme.palette.text.secondary} />
+                            </IconButton>
                           ) : null}
                         </TableCell>
                       </TableRow>
@@ -367,10 +400,14 @@ export default function TenderSourceView({ navItems, onNavigate, tender, logoUrl
 
         {/* Sidebar */}
         {selectedSupplier && (
-          <SupplierSidebar
-            supplier={{ ...selectedSupplier, comment: comments[selectedSupplier.code] ?? '' }}
-            onCommentChange={(code, comment) => setComments((prev) => ({ ...prev, [code]: comment }))}
-          />
+          <Box ref={sidebarWrapperRef}>
+            <SupplierSidebar
+              supplier={{ ...selectedSupplier, comment: comments[selectedSupplier.code] ?? '' }}
+              onCommentChange={(code, comment) => setComments((prev) => ({ ...prev, [code]: comment }))}
+              onClose={() => setSelectedSupplier(null)}
+              highlightCommentsKey={commentHighlightKey}
+            />
+          </Box>
         )}
       </Box>
         </>

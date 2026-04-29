@@ -5,7 +5,6 @@ import {
   HelpCircleIcon,
   MoreHorizontalIcon,
   NoteIcon,
-  Package02Icon,
   PrinterIcon,
   Search01Icon,
 } from '@hugeicons/core-free-icons';
@@ -128,12 +127,12 @@ export default function TenderItemsView({ navItems, onNavigate, tender, logoUrl 
   return (
     <NavLayout
       navItems={navItems}
-      activePath="/replenishment/tenders"
+      activePath="/tenders"
       logoUrl={logoUrl}
       headerProps={{
         title: `${tender.serial} > ${tender.description}`,
         afterTitle: <StatusController activeStep="items" onNavigate={onNavigate} />,
-        onBack: () => onNavigate('/replenishment/tenders/detail'),
+        onBack: () => onNavigate('/tenders/detail'),
         primaryAction: {
           label: t('tenderItems.addItems'),
           icon: <HugeiconsIcon icon={AddCircleIcon} size={18} color={primaryColor} />,
@@ -153,10 +152,9 @@ export default function TenderItemsView({ navItems, onNavigate, tender, logoUrl 
     >
       {showEmpty ? (
         <EmptyStateView
-          icon={Package02Icon}
           description={t('emptyState.itemsDescription')}
           actionLabel={t('emptyState.backToOverview')}
-          onAction={() => onNavigate('/replenishment/tenders/detail')}
+          onAction={() => onNavigate('/tenders/detail')}
         />
       ) : (
         <>
@@ -326,7 +324,7 @@ export default function TenderItemsView({ navItems, onNavigate, tender, logoUrl 
       <Box sx={{ position: 'fixed', bottom: 96, left: 220, right: 0, display: 'flex', justifyContent: 'center', zIndex: 5 }}>
         <Button
           variant="contained"
-          onClick={() => onNavigate('/replenishment/tenders/detail')}
+          onClick={() => onNavigate('/tenders/detail')}
           sx={{
             bgcolor: primaryColor,
             color: '#FFFFFF',

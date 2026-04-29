@@ -6,12 +6,10 @@ import {
   NoteIcon,
   PrinterIcon,
   Task01Icon,
-  TaskEdit01Icon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
   Box,
-  Button,
   Collapse,
   IconButton,
   InputBase,
@@ -24,6 +22,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLayout } from '../components/nav-layout';
 import EmptyStateView from '../components/EmptyStateView';
+import PrimaryCtaButton from '../components/PrimaryCtaButton';
 import { getTenderSteps } from '../components/tender/tender.types';
 import type { NavItem } from '../components/nav-layout';
 import DocumentDropZone from '../components/tender/DocumentDropZone';
@@ -43,6 +42,18 @@ function randomDate(): string {
   const day = Math.floor(Math.random() * 28) + 1;
   const month = Math.floor(Math.random() * 3) + 1;
   return `${String(day).padStart(2, '0')}.${String(month).padStart(2, '0')}.2025`;
+}
+
+/**
+ * Format a Date as DD.MM.YYYY to match the existing mock document rows.
+ * Used when a user drops a new file so the date column shows today's upload
+ * date in the same format as the seed entries.
+ */
+function formatUploadDate(d: Date = new Date()): string {
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}.${month}.${year}`;
 }
 
 const INITIAL_INTERNAL_DOCS: TenderDocument[] = [
@@ -134,7 +145,7 @@ export default function TenderPlanView({ navItems, onNavigate, tender, logoUrl }
       // Keep the extension on the stored name so DocumentList can show the
       // correct file-type badge (PDF / DOCX / XLSX / etc).
       name: f.name,
-      uploadDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.'),
+      uploadDate: formatUploadDate(),
     }));
     setInternalDocs((prev) => [...prev, ...newDocs]);
   };
@@ -145,7 +156,7 @@ export default function TenderPlanView({ navItems, onNavigate, tender, logoUrl }
       // Keep the extension on the stored name so DocumentList can show the
       // correct file-type badge (PDF / DOCX / XLSX / etc).
       name: f.name,
-      uploadDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.'),
+      uploadDate: formatUploadDate(),
     }));
     setProcurementDocs((prev) => [...prev, ...newDocs]);
   };
@@ -153,12 +164,12 @@ export default function TenderPlanView({ navItems, onNavigate, tender, logoUrl }
   return (
     <NavLayout
       navItems={navItems}
-      activePath="/replenishment/tenders"
+      activePath="/tenders"
       logoUrl={logoUrl}
       headerProps={{
         title: `${tender.serial} > ${tender.description}`,
         afterTitle: <StatusController activeStep="plan" onNavigate={onNavigate} />,
-        onBack: () => onNavigate('/replenishment/tenders/detail'),
+        onBack: () => onNavigate('/tenders/detail'),
         comboActions: [
           { icon: <HugeiconsIcon icon={PrinterIcon} size={20} />, label: t('common.print'), onClick: () => {} },
           { icon: <HugeiconsIcon icon={HelpCircleIcon} size={20} />, label: t('common.help'), onClick: () => {} },
@@ -173,10 +184,9 @@ export default function TenderPlanView({ navItems, onNavigate, tender, logoUrl }
     >
       {showEmpty ? (
         <EmptyStateView
-          icon={TaskEdit01Icon}
           description={t('emptyState.planDescription')}
           actionLabel={t('emptyState.backToOverview')}
-          onAction={() => onNavigate('/replenishment/tenders/detail')}
+          onAction={() => onNavigate('/tenders/detail')}
         />
       ) : (
         <>
@@ -433,29 +443,9 @@ export default function TenderPlanView({ navItems, onNavigate, tender, logoUrl }
 
         {/* Done Button */}
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <Button
-            variant="contained"
-            onClick={() => onNavigate('/replenishment/tenders/detail')}
-            sx={{
-              bgcolor: primaryColor,
-              color: '#FFFFFF',
-              fontFamily: 'Inter, sans-serif',
-              fontSize: 15,
-              fontWeight: 500,
-              textTransform: 'uppercase',
-              letterSpacing: '0.46px',
-              borderRadius: '24px',
-              px: 4,
-              py: 1,
-              boxShadow: '0px 1px 5px rgba(0,0,0,0.12), 0px 2px 2px rgba(0,0,0,0.14), 0px 3px 1px -2px rgba(0,0,0,0.2)',
-              '&:hover': {
-                bgcolor: primaryColor,
-                boxShadow: '0px 2px 8px rgba(0,0,0,0.2)',
-              },
-            }}
-          >
+          <PrimaryCtaButton onClick={() => onNavigate('/tenders/detail')}>
             {t('tenderPlan.done')}
-          </Button>
+          </PrimaryCtaButton>
         </Box>
       </Box>
         </>

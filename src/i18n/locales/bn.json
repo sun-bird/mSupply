@@ -230,17 +230,24 @@
     "evaluateDescription": "সরবরাহকারীদের বিড মূল্যায়ন করুন",
     "award": "পুরস্কার",
     "awardDescription": "বিজয়ী সরবরাহকারীদের ক্রয়াদেশ প্রদান",
-    "view": "দেখুন",
     "finaliseTender": "টেন্ডার চূড়ান্ত করুন",
     "tenderCreated": "টেন্ডার {{date}} তারিখে তৈরি।",
-    "viewLog": "লগ দেখুন"
+    "viewLog": "লগ দেখুন",
+    "countDocuments_one": "{{count}}টি নথি",
+    "countDocuments_other": "{{count}}টি নথি",
+    "countItems_one": "{{count}}টি আইটেম",
+    "countItems_other": "{{count}}টি আইটেম",
+    "countSuppliers_one": "{{count}}জন সরবরাহকারী",
+    "countSuppliers_other": "{{count}}জন সরবরাহকারী",
+    "countBidsEvaluated_one": "{{count}}টি বিড মূল্যায়ন করা হয়েছে",
+    "countBidsEvaluated_other": "{{count}}টি বিড মূল্যায়ন করা হয়েছে"
   },
   "emptyState": {
     "planDescription": "এই টেন্ডারের এখনও কোনো পরিকল্পনা নেই। শুরু করতে মানদণ্ড নির্ধারণ করুন এবং ক্রয় সংক্রান্ত নথি আপলোড করুন।",
-    "itemsDescription": "পরিকল্পনা তৈরি হলে, আপনি যেসব আইটেমের জন্য সরবরাহকারীদের কাছ থেকে দাম চাইতে চান তা যোগ করুন।",
-    "sourceDescription": "এই টেন্ডারে বিড দেওয়ার জন্য সরবরাহকারীদের আমন্ত্রণ জানালে তাঁরা এখানে দেখা যাবেন।",
-    "evaluateDescription": "সরবরাহকারীদের কাছ থেকে বিড আসা শুরু হলে মূল্যায়ন উপলব্ধ হবে।",
-    "awardDescription": "বিড মূল্যায়নের পরে, আপনি নির্বাচিত সরবরাহকারীদের ক্রয়াদেশ প্রদান করতে পারবেন।",
+    "itemsDescription": "এই টেন্ডারে বর্তমানে কোনো আইটেম নেই। চালিয়ে যেতে আইটেম যোগ করুন।",
+    "sourceDescription": "সরবরাহকারীদের বিড দেওয়ার জন্য আমন্ত্রণ জানালে তাঁরা এখানে দেখা যাবেন",
+    "evaluateDescription": "মূল্যায়ন ধাপ আনলক করতে সরবরাহকারীদের কাছ থেকে দরপত্র সংগ্রহ করুন",
+    "awardDescription": "টেন্ডার প্রদানের আগে বিড মূল্যায়ন করতে হবে",
     "backToOverview": "টেন্ডার ওভারভিউ"
   }
 }

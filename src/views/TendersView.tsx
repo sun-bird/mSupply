@@ -132,7 +132,7 @@ export default function TendersView({ navItems, onNavigate, onSelectTender, logo
   return (
     <NavLayout
       navItems={navItems}
-      activePath="/replenishment/tenders"
+      activePath="/tenders"
       logoUrl={logoUrl}
       headerProps={{
         title: t('tenders.title'),
@@ -351,7 +351,7 @@ export default function TendersView({ navItems, onNavigate, onSelectTender, logo
                     hover
                     onClick={() => {
                       onSelectTender(row);
-                      onNavigate('/replenishment/tenders/detail');
+                      onNavigate('/tenders/detail');
                     }}
                     sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'action.hover' } }}
                   >

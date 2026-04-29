@@ -30,11 +30,11 @@ export default function TenderStateView({ navItems, onNavigate, tender, logoUrl 
   return (
     <NavLayout
       navItems={navItems}
-      activePath="/replenishment/tenders"
+      activePath="/tenders"
       logoUrl={logoUrl}
       headerProps={{
         title: `${tender.serial} > ${tender.description}`,
-        onBack: () => onNavigate('/replenishment/tenders'),
+        onBack: () => onNavigate('/tenders'),
         comboActions: [
           { icon: <HugeiconsIcon icon={PrinterIcon} size={20} />, label: t('common.print'), onClick: () => {} },
           { icon: <HugeiconsIcon icon={HelpCircleIcon} size={20} />, label: t('common.help'), onClick: () => {} },
@@ -60,15 +60,15 @@ export default function TenderStateView({ navItems, onNavigate, tender, logoUrl 
               description={t(meta.descriptionKey)}
               onView={() => {
                 if (step.key === 'plan') {
-                  onNavigate('/replenishment/tenders/plan');
+                  onNavigate('/tenders/plan');
                 } else if (step.key === 'items') {
-                  onNavigate('/replenishment/tenders/items');
+                  onNavigate('/tenders/items');
                 } else if (step.key === 'source') {
-                  onNavigate('/replenishment/tenders/source');
+                  onNavigate('/tenders/source');
                 } else if (step.key === 'evaluate') {
-                  onNavigate('/replenishment/tenders/evaluate');
+                  onNavigate('/tenders/evaluate');
                 } else if (step.key === 'award') {
-                  onNavigate('/replenishment/tenders/award');
+                  onNavigate('/tenders/award');
                 }
               }}
               {...(isAward && {

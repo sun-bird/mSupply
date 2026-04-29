@@ -1,4 +1,5 @@
 import {
+  ArrowRight01Icon,
   CheckmarkCircle01Icon,
   FileEditIcon,
   Package02Icon,
@@ -8,7 +9,9 @@ import {
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Box, Button, Typography, useTheme } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import type { TenderStep } from './tender.types';
+import { getCountLabelKey } from './tender.types';
 
 interface TenderStepPanelProps {
   step: TenderStep;
@@ -36,12 +39,18 @@ export default function TenderStepPanel({
   actionLabel,
 }: TenderStepPanelProps) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const primaryColor = theme.palette.primary.main;
   const isComplete = step.status === 'complete';
   const isNextUp = step.status === 'nextUp';
   const isIncomplete = step.status === 'incomplete';
 
   const StepIcon = STEP_ICONS[step.key] ?? FileEditIcon;
+
+  // Format the count label via i18n. `award` has no count key, so the
+  // panel skips the label entirely for that step.
+  const countKey = getCountLabelKey(step.key);
+  const countLabel = countKey ? t(countKey, { count: step.count }) : '';
 
   return (
     <Box
@@ -134,7 +143,8 @@ export default function TenderStepPanel({
         {description}
       </Typography>
 
-      {/* Right side: count + view link OR action button */}
+      {/* Right side: count + view link OR action button. Followed by a
+          right-chevron affordance to reinforce that the row is clickable. */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
         {onAction && actionLabel && isNextUp ? (
           <Button
@@ -161,7 +171,7 @@ export default function TenderStepPanel({
           </Button>
         ) : (
           <>
-            {step.countLabel && (
+            {countLabel && (
               <Typography
                 sx={{
                   fontFamily: 'Inter, sans-serif',
@@ -170,27 +180,16 @@ export default function TenderStepPanel({
                   whiteSpace: 'nowrap',
                 }}
               >
-                {step.countLabel}
-              </Typography>
-            )}
-            {step.status !== 'incomplete' && (
-              <Typography
-                onClick={onView}
-                sx={{
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: 14,
-                  color: primaryColor,
-                  textDecoration: 'underline',
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                  '&:hover': { opacity: 0.8 },
-                }}
-              >
-                View
+                {countLabel}
               </Typography>
             )}
           </>
         )}
+        <HugeiconsIcon
+          icon={ArrowRight01Icon}
+          size={20}
+          color={isIncomplete ? '#C7C7D1' : '#555770'}
+        />
       </Box>
     </Box>
   );

@@ -3,6 +3,7 @@ import {
   DeliveryTruck02Icon,
   FirstAidKitIcon,
   HelpCircleIcon,
+  Invoice02Icon,
   Login01Icon,
   PackageOpenIcon,
   PackageProcessIcon,
@@ -239,10 +240,10 @@ function buildTheme(primaryColor: string, mode: 'light' | 'dark' = 'light', dire
 function buildNavItems(t: (key: string) => string): NavItem[] {
   return [
     { label: t('nav.dashboard'), icon: <HugeiconsIcon icon={DashboardSpeed01Icon} size={22} />, href: '/dashboard' },
+    { label: t('nav.tenders'), icon: <HugeiconsIcon icon={Invoice02Icon} size={22} />, href: '/tenders' },
     {
       label: t('nav.replenishment'), icon: <HugeiconsIcon icon={PackageOpenIcon} size={22} />, href: '/replenishment',
       children: [
-        { label: t('nav.tenders'), href: '/replenishment/tenders' },
         { label: t('nav.purchaseOrders'), href: '/replenishment/purchase-orders' },
         { label: t('nav.goodsReceived'), href: '/replenishment/goods-received' },
         { label: t('nav.internalOrders'), href: '/replenishment/internal-orders' },
@@ -437,19 +438,19 @@ export default function App() {
     content = <StockView navItems={wiredNavItems} onNavigate={setActivePath} logoUrl={logoUrl ?? undefined} />;
   } else if (activePath === '/replenishment/goods-received') {
     content = <GoodsReceivedView navItems={wiredNavItems} onNavigate={setActivePath} />;
-  } else if (activePath === '/replenishment/tenders/plan' && selectedTender) {
+  } else if (activePath === '/tenders/plan' && selectedTender) {
     content = <TenderPlanView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} logoUrl={logoUrl ?? undefined} />;
-  } else if (activePath === '/replenishment/tenders/items' && selectedTender) {
+  } else if (activePath === '/tenders/items' && selectedTender) {
     content = <TenderItemsView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} logoUrl={logoUrl ?? undefined} />;
-  } else if (activePath === '/replenishment/tenders/source' && selectedTender) {
+  } else if (activePath === '/tenders/source' && selectedTender) {
     content = <TenderSourceView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} logoUrl={logoUrl ?? undefined} />;
-  } else if (activePath === '/replenishment/tenders/evaluate' && selectedTender) {
+  } else if (activePath === '/tenders/evaluate' && selectedTender) {
     content = <TenderEvaluateView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} logoUrl={logoUrl ?? undefined} />;
-  } else if (activePath === '/replenishment/tenders/award' && selectedTender) {
+  } else if (activePath === '/tenders/award' && selectedTender) {
     content = <TenderAwardView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} logoUrl={logoUrl ?? undefined} />;
-  } else if (activePath === '/replenishment/tenders/detail' && selectedTender) {
+  } else if (activePath === '/tenders/detail' && selectedTender) {
     content = <TenderStateView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} logoUrl={logoUrl ?? undefined} />;
-  } else if (activePath === '/replenishment/tenders') {
+  } else if (activePath === '/tenders') {
     content = <TendersView navItems={wiredNavItems} onNavigate={setActivePath} onSelectTender={setSelectedTender} logoUrl={logoUrl ?? undefined} />;
   } else if (activePath === '/settings/themes') {
     content = (

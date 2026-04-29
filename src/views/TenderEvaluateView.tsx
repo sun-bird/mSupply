@@ -1,7 +1,6 @@
 import {
   ArrowDown01Icon,
   EyeIcon,
-  FileEditIcon,
   HelpCircleIcon,
   NoteIcon,
   PrinterIcon,
@@ -131,12 +130,12 @@ export default function TenderEvaluateView({ navItems, onNavigate, tender, logoU
   return (
     <NavLayout
       navItems={navItems}
-      activePath="/replenishment/tenders"
+      activePath="/tenders"
       logoUrl={logoUrl}
       headerProps={{
         title: `${tender.serial} > ${tender.description}`,
         afterTitle: <StatusController activeStep="evaluate" onNavigate={onNavigate} />,
-        onBack: () => onNavigate('/replenishment/tenders/detail'),
+        onBack: () => onNavigate('/tenders/detail'),
         comboActions: [
           { icon: <HugeiconsIcon icon={PrinterIcon} size={20} />, label: t('common.print'), onClick: () => {} },
           { icon: <HugeiconsIcon icon={HelpCircleIcon} size={20} />, label: t('common.help'), onClick: () => {} },
@@ -151,10 +150,9 @@ export default function TenderEvaluateView({ navItems, onNavigate, tender, logoU
     >
       {showEmpty ? (
         <EmptyStateView
-          icon={FileEditIcon}
           description={t('emptyState.evaluateDescription')}
           actionLabel={t('emptyState.backToOverview')}
-          onAction={() => onNavigate('/replenishment/tenders/detail')}
+          onAction={() => onNavigate('/tenders/detail')}
         />
       ) : (
         <>

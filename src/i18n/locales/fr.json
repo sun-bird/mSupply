@@ -230,17 +230,24 @@
     "evaluateDescription": "Évaluer les offres des fournisseurs",
     "award": "Attribuer",
     "awardDescription": "Attribuer les bons de commande aux fournisseurs retenus",
-    "view": "Voir",
     "finaliseTender": "Finaliser l'appel d'offres",
     "tenderCreated": "Appel d'offres créé le {{date}}.",
-    "viewLog": "Voir le journal"
+    "viewLog": "Voir le journal",
+    "countDocuments_one": "{{count}} document",
+    "countDocuments_other": "{{count}} documents",
+    "countItems_one": "{{count}} article",
+    "countItems_other": "{{count}} articles",
+    "countSuppliers_one": "{{count}} fournisseur",
+    "countSuppliers_other": "{{count}} fournisseurs",
+    "countBidsEvaluated_one": "{{count}} offre évaluée",
+    "countBidsEvaluated_other": "{{count}} offres évaluées"
   },
   "emptyState": {
     "planDescription": "Cet appel d'offres n'a pas encore de plan. Définissez les critères et téléversez vos documents d'approvisionnement pour commencer.",
-    "itemsDescription": "Une fois le plan en place, ajoutez les articles pour lesquels vous souhaitez que les fournisseurs soumettent une offre.",
-    "sourceDescription": "Les fournisseurs apparaîtront ici dès que vous les aurez invités à soumissionner.",
-    "evaluateDescription": "L'évaluation deviendra disponible dès que les offres des fournisseurs commenceront à arriver.",
-    "awardDescription": "Une fois les offres évaluées, vous pourrez attribuer les bons de commande aux fournisseurs retenus.",
+    "itemsDescription": "Aucun article n'est actuellement présent dans cet appel d'offres. Ajoutez des articles pour continuer.",
+    "sourceDescription": "Les fournisseurs apparaîtront ici une fois que vous les aurez invités à soumissionner",
+    "evaluateDescription": "Sourcez les offres auprès des fournisseurs pour débloquer l'étape d'évaluation",
+    "awardDescription": "Les offres doivent être évaluées avant d'attribuer les marchés",
     "backToOverview": "Vue d'ensemble"
   }
 }

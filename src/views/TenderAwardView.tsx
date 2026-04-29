@@ -1,6 +1,5 @@
 import {
   ArrowDown01Icon,
-  AwardIcon,
   EyeIcon,
   HelpCircleIcon,
   NoteIcon,
@@ -155,12 +154,12 @@ export default function TenderAwardView({ navItems, onNavigate, tender, logoUrl 
   return (
     <NavLayout
       navItems={navItems}
-      activePath="/replenishment/tenders"
+      activePath="/tenders"
       logoUrl={logoUrl}
       headerProps={{
         title: `${tender.serial} > ${tender.description}`,
         afterTitle: <StatusController activeStep="award" onNavigate={onNavigate} />,
-        onBack: () => onNavigate('/replenishment/tenders/detail'),
+        onBack: () => onNavigate('/tenders/detail'),
         comboActions: [
           { icon: <HugeiconsIcon icon={PrinterIcon} size={20} />, label: t('common.print'), onClick: () => {} },
           { icon: <HugeiconsIcon icon={HelpCircleIcon} size={20} />, label: t('common.help'), onClick: () => {} },
@@ -175,10 +174,9 @@ export default function TenderAwardView({ navItems, onNavigate, tender, logoUrl 
     >
       {showEmpty ? (
         <EmptyStateView
-          icon={AwardIcon}
           description={t('emptyState.awardDescription')}
           actionLabel={t('emptyState.backToOverview')}
-          onAction={() => onNavigate('/replenishment/tenders/detail')}
+          onAction={() => onNavigate('/tenders/detail')}
         />
       ) : (
         <>
