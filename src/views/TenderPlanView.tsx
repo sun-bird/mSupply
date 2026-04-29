@@ -43,18 +43,18 @@ function randomDate(): string {
 }
 
 const INITIAL_INTERNAL_DOCS: TenderDocument[] = [
-  { id: '1', name: 'Budget Allocation', uploadDate: randomDate() },
-  { id: '2', name: 'Business Case', uploadDate: randomDate() },
-  { id: '3', name: 'Confidentiality Agreements', uploadDate: randomDate() },
-  { id: '4', name: 'Evaluation Criteria', uploadDate: randomDate() },
-  { id: '5', name: 'Procurement Plan', uploadDate: randomDate() },
-  { id: '6', name: 'Risk Register', uploadDate: randomDate() },
+  { id: '1', name: 'Budget Allocation.xlsx', uploadDate: randomDate() },
+  { id: '2', name: 'Business Case.docx', uploadDate: randomDate() },
+  { id: '3', name: 'Confidentiality Agreements.pdf', uploadDate: randomDate() },
+  { id: '4', name: 'Evaluation Criteria.docx', uploadDate: randomDate() },
+  { id: '5', name: 'Procurement Plan.pdf', uploadDate: randomDate() },
+  { id: '6', name: 'Risk Register.xlsx', uploadDate: randomDate() },
 ];
 
 const INITIAL_PROCUREMENT_DOCS: TenderDocument[] = [
-  { id: '7', name: 'RFx document', uploadDate: randomDate() },
-  { id: '8', name: 'Supplier Guidance Document', uploadDate: randomDate() },
-  { id: '9', name: 'Terms and Conditions', uploadDate: randomDate() },
+  { id: '7', name: 'RFx document.pdf', uploadDate: randomDate() },
+  { id: '8', name: 'Supplier Guidance Document.pdf', uploadDate: randomDate() },
+  { id: '9', name: 'Terms and Conditions.pdf', uploadDate: randomDate() },
 ];
 
 const inputSx = {
@@ -126,7 +126,9 @@ export default function TenderPlanView({ navItems, onNavigate, tender, logoUrl }
   const handleAddInternalDocs = (files: File[]) => {
     const newDocs = files.map((f, i) => ({
       id: `new-int-${Date.now()}-${i}`,
-      name: f.name.replace(/\.[^/.]+$/, ''),
+      // Keep the extension on the stored name so DocumentList can show the
+      // correct file-type badge (PDF / DOCX / XLSX / etc).
+      name: f.name,
       uploadDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.'),
     }));
     setInternalDocs((prev) => [...prev, ...newDocs]);
@@ -135,7 +137,9 @@ export default function TenderPlanView({ navItems, onNavigate, tender, logoUrl }
   const handleAddProcurementDocs = (files: File[]) => {
     const newDocs = files.map((f, i) => ({
       id: `new-proc-${Date.now()}-${i}`,
-      name: f.name.replace(/\.[^/.]+$/, ''),
+      // Keep the extension on the stored name so DocumentList can show the
+      // correct file-type badge (PDF / DOCX / XLSX / etc).
+      name: f.name,
       uploadDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '.'),
     }));
     setProcurementDocs((prev) => [...prev, ...newDocs]);
