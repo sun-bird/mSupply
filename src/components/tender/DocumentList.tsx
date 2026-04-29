@@ -1,19 +1,10 @@
 import {
-  Csv01Icon,
   Delete02Icon,
-  Doc01Icon,
   DownloadCircle02Icon,
-  File01Icon,
-  Image01Icon,
   MoreHorizontalIcon,
-  Pdf01Icon,
-  Ppt01Icon,
   Share01Icon,
-  Xls01Icon,
-  Zip01Icon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
-import type { IconSvgElement } from '@hugeicons/react';
 import {
   Box,
   IconButton,
@@ -38,40 +29,52 @@ interface DocumentListProps {
 }
 
 /**
- * Pick a Hugeicons icon and accent colour for a filename based on its
- * extension. Falls back to a neutral File01Icon when the extension is missing
- * or unrecognised. Colours are loose conventions (red = PDF, green =
- * spreadsheet, blue = Word, etc).
+ * Derive a short, uppercase file-type label and a tinted colour from a
+ * filename. Falls back to "FILE" with a neutral colour when the extension is
+ * missing or unrecognised. Colours are loose conventions (red = PDF,
+ * green = spreadsheet, blue = Word, etc) — all rendered against a 12% tint.
  */
-function getFileTypeIcon(name: string): { icon: IconSvgElement; color: string } {
-  const FALLBACK = { icon: File01Icon, color: '#6B7280' };
+function getFileTypeBadge(name: string): { label: string; color: string } {
   const dot = name.lastIndexOf('.');
-  if (dot < 0 || dot === name.length - 1) return FALLBACK;
+  if (dot < 0 || dot === name.length - 1) {
+    return { label: 'FILE', color: '#6B7280' };
+  }
   const ext = name.slice(dot + 1).toLowerCase();
 
-  const KNOWN: Record<string, { icon: IconSvgElement; color: string }> = {
-    pdf: { icon: Pdf01Icon, color: '#E53535' },
-    doc: { icon: Doc01Icon, color: '#2B6CB0' },
-    docx: { icon: Doc01Icon, color: '#2B6CB0' },
-    rtf: { icon: Doc01Icon, color: '#2B6CB0' },
-    txt: { icon: Doc01Icon, color: '#6B7280' },
-    xls: { icon: Xls01Icon, color: '#1F8E3D' },
-    xlsx: { icon: Xls01Icon, color: '#1F8E3D' },
-    csv: { icon: Csv01Icon, color: '#1F8E3D' },
-    ppt: { icon: Ppt01Icon, color: '#D04A1F' },
-    pptx: { icon: Ppt01Icon, color: '#D04A1F' },
-    zip: { icon: Zip01Icon, color: '#7C3AED' },
-    rar: { icon: Zip01Icon, color: '#7C3AED' },
-    '7z': { icon: Zip01Icon, color: '#7C3AED' },
-    png: { icon: Image01Icon, color: '#0891B2' },
-    jpg: { icon: Image01Icon, color: '#0891B2' },
-    jpeg: { icon: Image01Icon, color: '#0891B2' },
-    gif: { icon: Image01Icon, color: '#0891B2' },
-    svg: { icon: Image01Icon, color: '#0891B2' },
-    webp: { icon: Image01Icon, color: '#0891B2' },
+  const KNOWN: Record<string, { label: string; color: string }> = {
+    pdf: { label: 'PDF', color: '#E53535' },
+    doc: { label: 'DOC', color: '#2B6CB0' },
+    docx: { label: 'DOCX', color: '#2B6CB0' },
+    xls: { label: 'XLS', color: '#1F8E3D' },
+    xlsx: { label: 'XLSX', color: '#1F8E3D' },
+    csv: { label: 'CSV', color: '#1F8E3D' },
+    ppt: { label: 'PPT', color: '#D04A1F' },
+    pptx: { label: 'PPTX', color: '#D04A1F' },
+    txt: { label: 'TXT', color: '#6B7280' },
+    rtf: { label: 'RTF', color: '#6B7280' },
+    zip: { label: 'ZIP', color: '#7C3AED' },
+    rar: { label: 'RAR', color: '#7C3AED' },
+    '7z': { label: '7Z', color: '#7C3AED' },
+    png: { label: 'PNG', color: '#0891B2' },
+    jpg: { label: 'JPG', color: '#0891B2' },
+    jpeg: { label: 'JPG', color: '#0891B2' },
+    gif: { label: 'GIF', color: '#0891B2' },
+    svg: { label: 'SVG', color: '#0891B2' },
+    webp: { label: 'WEBP', color: '#0891B2' },
   };
 
-  return KNOWN[ext] ?? FALLBACK;
+  if (KNOWN[ext]) return KNOWN[ext];
+  // Unknown extension — show it raw, capped at 4 chars so the badge stays
+  // readable.
+  return { label: ext.slice(0, 4).toUpperCase(), color: '#6B7280' };
+}
+
+/** Hex (#RRGGBB) -> rgba string with the given alpha. */
+function hexToRgba(hex: string, alpha: number): string {
+  const m = /^#([0-9a-fA-F]{6})$/.exec(hex);
+  if (!m) return hex;
+  const n = parseInt(m[1], 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${alpha})`;
 }
 
 export default function DocumentList({ documents, onRemove }: DocumentListProps) {
@@ -98,7 +101,7 @@ export default function DocumentList({ documents, onRemove }: DocumentListProps)
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column' }}>
       {documents.map((doc) => {
-        const fileType = getFileTypeIcon(doc.name);
+        const badge = getFileTypeBadge(doc.name);
         return (
         <Box
           key={doc.id}
@@ -113,19 +116,27 @@ export default function DocumentList({ documents, onRemove }: DocumentListProps)
             '&:hover': { bgcolor: 'action.hover' },
           }}
         >
-          {/* File-type icon — Hugeicon picked from the extension. Wrapped in
-              a fixed-width column so file names line up across rows. */}
-          <Box
-            sx={{
-              width: 32,
-              flexShrink: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: fileType.color,
-            }}
-          >
-            <HugeiconsIcon icon={fileType.icon} size={24} color="currentColor" />
+          {/* File-type badge — colour and label derived from the extension.
+              Wrapped in a fixed-width column so file names line up across
+              rows regardless of badge label length (PDF vs DOCX vs WEBP). */}
+          <Box sx={{ width: 47, flexShrink: 0, display: 'flex', justifyContent: 'flex-start' }}>
+            <Box
+              sx={{
+                minWidth: 28,
+                maxWidth: '100%',
+                height: 28,
+                px: 0.75,
+                borderRadius: '6px',
+                bgcolor: hexToRgba(badge.color, 0.12),
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Typography sx={{ fontSize: 10, fontWeight: 700, color: badge.color, fontFamily: 'Inter, sans-serif' }}>
+                {badge.label}
+              </Typography>
+            </Box>
           </Box>
 
           {/* Document name */}
