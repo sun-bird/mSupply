@@ -233,6 +233,7 @@
     "finaliseTender": "إنهاء المناقصة",
     "tenderCreated": "تم إنشاء المناقصة في {{date}}.",
     "viewLog": "عرض السجل",
+    "tenderFinalised": "تم إنهاء المناقصة",
     "countDocuments_zero": "لا توجد مستندات",
     "countDocuments_one": "مستند واحد",
     "countDocuments_two": "مستندان",

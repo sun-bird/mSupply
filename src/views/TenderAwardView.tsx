@@ -29,6 +29,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLayout } from '../components/nav-layout';
 import EmptyStateView from '../components/EmptyStateView';
+import FinaliseSplash from '../components/tender/FinaliseSplash';
 import { getTenderSteps } from '../components/tender/tender.types';
 import type { NavItem } from '../components/nav-layout';
 import StatusController from '../components/tender/StatusController';
@@ -96,6 +97,7 @@ export default function TenderAwardView({ navItems, onNavigate, tender, logoUrl 
   const [checkedRows, setCheckedRows] = useState<Set<number>>(new Set());
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  const [splashOpen, setSplashOpen] = useState(false);
 
   const handleSort = (key: string) => {
     if (sortKey === key) {
@@ -203,6 +205,7 @@ export default function TenderAwardView({ navItems, onNavigate, tender, logoUrl 
           </Box>
           <Button
             variant="contained"
+            onClick={() => setSplashOpen(true)}
             sx={{
               bgcolor: primaryColor,
               color: '#FFFFFF',
@@ -387,6 +390,14 @@ export default function TenderAwardView({ navItems, onNavigate, tender, logoUrl 
       </Box>
         </>
       )}
+
+      <FinaliseSplash
+        open={splashOpen}
+        onComplete={() => {
+          setSplashOpen(false);
+          onNavigate('/tenders');
+        }}
+      />
     </NavLayout>
   );
 }

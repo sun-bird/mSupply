@@ -75,6 +75,7 @@
     "finaliseTender": "Finalise Tender",
     "tenderCreated": "Tender Created {{date}}.",
     "viewLog": "View Log",
+    "tenderFinalised": "Tender finalised",
     "countDocuments_one": "{{count}} document",
     "countDocuments_other": "{{count}} documents",
     "countItems_one": "{{count}} item",

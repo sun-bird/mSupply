@@ -233,6 +233,7 @@
     "finaliseTender": "টেন্ডার চূড়ান্ত করুন",
     "tenderCreated": "টেন্ডার {{date}} তারিখে তৈরি।",
     "viewLog": "লগ দেখুন",
+    "tenderFinalised": "টেন্ডার চূড়ান্ত হয়েছে",
     "countDocuments_one": "{{count}}টি নথি",
     "countDocuments_other": "{{count}}টি নথি",
     "countItems_one": "{{count}}টি আইটেম",

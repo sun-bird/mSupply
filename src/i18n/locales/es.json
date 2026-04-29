@@ -233,6 +233,7 @@
     "finaliseTender": "Finalizar licitación",
     "tenderCreated": "Licitación creada el {{date}}.",
     "viewLog": "Ver registro",
+    "tenderFinalised": "Licitación finalizada",
     "countDocuments_one": "{{count}} documento",
     "countDocuments_other": "{{count}} documentos",
     "countItems_one": "{{count}} artículo",

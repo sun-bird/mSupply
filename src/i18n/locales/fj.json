@@ -75,6 +75,7 @@
     "finaliseTender": "Vakacavara na Tender",
     "tenderCreated": "Sa Vakaduri na Tender {{date}}.",
     "viewLog": "Raica na Itukutuku",
+    "tenderFinalised": "Sa Vakacavari na Tender",
     "countDocuments_one": "{{count}} ivola",
     "countDocuments_other": "{{count}} ivola",
     "countItems_one": "{{count}} iyaya",

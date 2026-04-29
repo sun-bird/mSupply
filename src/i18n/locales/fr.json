@@ -233,6 +233,7 @@
     "finaliseTender": "Finaliser l'appel d'offres",
     "tenderCreated": "Appel d'offres créé le {{date}}.",
     "viewLog": "Voir le journal",
+    "tenderFinalised": "Appel d'offres finalisé",
     "countDocuments_one": "{{count}} document",
     "countDocuments_other": "{{count}} documents",
     "countItems_one": "{{count}} article",

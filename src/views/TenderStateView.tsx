@@ -73,7 +73,10 @@ export default function TenderStateView({ navItems, onNavigate, tender, logoUrl 
               }}
               {...(isAward && {
                 onAction: () => {
-                  // Finalise tender action to be implemented later
+                  // Finalise from this panel routes to the Award view, where
+                  // the actual FINALISE TENDER button lives and plays the
+                  // splash. Keeps the action in one place.
+                  onNavigate('/tenders/award');
                 },
                 actionLabel: t('tenderState.finaliseTender'),
               })}

@@ -149,7 +149,13 @@ export default function TenderStepPanel({
         {onAction && actionLabel && isNextUp ? (
           <Button
             variant="contained"
-            onClick={onAction}
+            // Stop propagation so clicking the action button doesn't also
+            // fire the panel's onClick (which navigates away and would
+            // unmount any modal/splash the action triggers).
+            onClick={(e) => {
+              e.stopPropagation();
+              onAction?.();
+            }}
             sx={{
               bgcolor: primaryColor,
               color: '#FFFFFF',
