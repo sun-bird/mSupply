@@ -116,23 +116,27 @@ export default function DocumentList({ documents, onRemove }: DocumentListProps)
             '&:hover': { bgcolor: 'action.hover' },
           }}
         >
-          {/* File-type badge — colour and label derived from the extension */}
-          <Box
-            sx={{
-              minWidth: 28,
-              height: 28,
-              px: 0.75,
-              borderRadius: '6px',
-              bgcolor: hexToRgba(badge.color, 0.12),
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
-            <Typography sx={{ fontSize: 10, fontWeight: 700, color: badge.color, fontFamily: 'Inter, sans-serif' }}>
-              {badge.label}
-            </Typography>
+          {/* File-type badge — colour and label derived from the extension.
+              Wrapped in a fixed-width column so file names line up across
+              rows regardless of badge label length (PDF vs DOCX vs WEBP). */}
+          <Box sx={{ width: 44, flexShrink: 0, display: 'flex', justifyContent: 'flex-start' }}>
+            <Box
+              sx={{
+                minWidth: 28,
+                maxWidth: '100%',
+                height: 28,
+                px: 0.75,
+                borderRadius: '6px',
+                bgcolor: hexToRgba(badge.color, 0.12),
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Typography sx={{ fontSize: 10, fontWeight: 700, color: badge.color, fontFamily: 'Inter, sans-serif' }}>
+                {badge.label}
+              </Typography>
+            </Box>
           </Box>
 
           {/* Document name */}
