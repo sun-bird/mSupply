@@ -166,7 +166,7 @@ export default function TenderPlanView({ navItems, onNavigate, tender, logoUrl }
         isOnline: true,
       }}
     >
-      <Box sx={{ maxWidth: 800, mx: 'auto', mt: '80px', pb: 4 }}>
+      <Box sx={{ maxWidth: 800, mx: 'auto', mt: 2, pb: 4 }}>
         {/* Tender Details Section */}
         <Box sx={{ bgcolor: 'background.paper', borderRadius: '10px', mb: 2, overflow: 'hidden' }}>
           {/* Section Header */}

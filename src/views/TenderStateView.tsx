@@ -47,7 +47,7 @@ export default function TenderStateView({ navItems, onNavigate, tender, logoUrl 
         isOnline: true,
       }}
     >
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 800, mx: 'auto', mt: '80px' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 800, mx: 'auto', mt: 2 }}>
         {steps.map((step) => {
           const meta = STEP_META[step.key];
           const isAward = step.key === 'award';
