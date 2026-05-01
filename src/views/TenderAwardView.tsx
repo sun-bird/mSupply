@@ -395,7 +395,7 @@ export default function TenderAwardView({ navItems, onNavigate, tender, logoUrl 
         open={splashOpen}
         onComplete={() => {
           setSplashOpen(false);
-          onNavigate('/tenders');
+          onNavigate('/tenders/success');
         }}
       />
     </NavLayout>

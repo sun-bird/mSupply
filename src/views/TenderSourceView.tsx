@@ -5,6 +5,7 @@ import {
   EyeIcon,
   HelpCircleIcon,
   Mail01Icon,
+  NoteIcon,
   PrinterIcon,
   Search01Icon,
   Upload04Icon,
@@ -43,15 +44,8 @@ import type { NavItem } from '../components/nav-layout';
 import StatusController from '../components/tender/StatusController';
 import SupplierSidebar from '../components/tender/SupplierSidebar';
 import type { Supplier } from '../components/tender/SupplierSidebar';
+import { TENDER_SUPPLIERS } from '../components/tender/tenderSuppliers';
 import type { TenderRow } from './TendersView';
-
-const MOCK_SUPPLIERS: Supplier[] = [
-  { code: 'CC', name: "Chloe's Consumables", performance: 100, dateSent: '12/02/2026', dateResponded: '18/02/2026', totalBid: '514.00', tenderValue: 489.30, totalOnPO: 372.50, checked: true, pastBids: 14, tendersWon: 5, deliveryOnTime: 100, comment: "Chloe's have been great to deal with. They were responsive when we had questions about delivery and suppliers were well packed and arrived on time." },
-  { code: 'KS2', name: "Luna's Apothecary Consumable Supplies", performance: 100, dateSent: '14/02/2026', dateResponded: '25/02/2026', totalBid: '1,247.80', tenderValue: 1105.60, totalOnPO: 863.20, checked: true, pastBids: 14, tendersWon: 5, deliveryOnTime: 100, comment: "Luna's have been great to deal with. They were responsive when we had questions about delivery and suppliers were well packed and arrived on time." },
-  { code: 'X454', name: 'Kahn Medical Equipment', performance: 89, dateSent: '12/02/2026', dateResponded: '03/03/2026', totalBid: '782.50', tenderValue: 695.00, totalOnPO: 410.75, checked: false, pastBids: 8, tendersWon: 2, deliveryOnTime: 89, comment: '' },
-  { code: 'LPOC', name: "Lorenzo's POC Solutions", performance: 87, dateSent: '15/02/2026', dateResponded: '22/02/2026', totalBid: '623.40', tenderValue: 580.15, totalOnPO: 290.00, checked: true, pastBids: 11, tendersWon: 4, deliveryOnTime: 87, comment: '' },
-  { code: 'TSS', name: 'The Supply Shack', performance: 64, dateSent: '12/02/2026', dateResponded: '10/03/2026', totalBid: '1,890.00', tenderValue: 1742.25, totalOnPO: 526.40, checked: false, pastBids: 6, tendersWon: 1, deliveryOnTime: 64, comment: '' },
-];
 
 function perfColor(value: number): string {
   if (value >= 95) return '#05A660';
@@ -66,19 +60,39 @@ interface TenderSourceViewProps {
   logoUrl?: string;
 }
 
+/** Parse a `D/M/YYYY` date string (matches the format on TenderRow.deadline)
+ *  into a Date in local time, or `null` if the input is malformed. */
+function parseDeadline(value: string): Date | null {
+  const parts = value.split('/').map((p) => parseInt(p, 10));
+  if (parts.length !== 3 || parts.some((n) => Number.isNaN(n))) return null;
+  const [day, month, year] = parts;
+  return new Date(year, month - 1, day);
+}
+
+/** Whole-day difference between `deadline` and today. Positive = future. */
+function daysUntil(deadline: Date): number {
+  const MS_PER_DAY = 86_400_000;
+  const today = new Date();
+  const a = Date.UTC(deadline.getFullYear(), deadline.getMonth(), deadline.getDate());
+  const b = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  return Math.round((a - b) / MS_PER_DAY);
+}
+
 export default function TenderSourceView({ navItems, onNavigate, tender, logoUrl }: TenderSourceViewProps) {
   const { t } = useTranslation();
   const stepStatus = getTenderSteps(tender.status).find((s) => s.key === 'source')?.status;
   const showEmpty = stepStatus === 'incomplete';
   const theme = useTheme();
   const primaryColor = theme.palette.primary.main;
+  const deadlineDate = parseDeadline(tender.deadline);
+  const daysRemaining = deadlineDate ? daysUntil(deadlineDate) : null;
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
   const [checkedCodes, setCheckedCodes] = useState<Set<string>>(new Set());
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [comments, setComments] = useState<Record<string, string>>(() =>
-    Object.fromEntries(MOCK_SUPPLIERS.map((s) => [s.code, s.comment]))
+    Object.fromEntries(TENDER_SUPPLIERS.map((s) => [s.code, s.comment]))
   );
 
   // Refs used to dismiss the supplier sidebar on outside-clicks. The table is
@@ -115,7 +129,7 @@ export default function TenderSourceView({ navItems, onNavigate, tender, logoUrl
   };
 
   const filteredSuppliers = useMemo(() => {
-    let result = MOCK_SUPPLIERS.filter((s) => {
+    let result = TENDER_SUPPLIERS.filter((s) => {
       if (!searchQuery) return true;
       const q = searchQuery.toLowerCase();
       return s.code.toLowerCase().includes(q) || s.name.toLowerCase().includes(q);
@@ -179,6 +193,128 @@ export default function TenderSourceView({ navItems, onNavigate, tender, logoUrl
       <Box sx={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Main content */}
         <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+          {/* Info Banner — counts how many invited suppliers have replied. */}
+          <Box
+            sx={{
+              bgcolor: 'background.paper',
+              borderRadius: '10px',
+              px: { xs: 2, sm: 3 },
+              py: 2,
+              mt: 2,
+              mb: 2,
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: { xs: 'stretch', sm: 'center' },
+              justifyContent: 'space-between',
+              gap: { xs: 1.5, sm: 0 },
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.5,
+                minWidth: 0,
+                flexWrap: { xs: 'wrap', sm: 'nowrap' },
+              }}
+            >
+              <HugeiconsIcon icon={NoteIcon} size={24} color="#3E7BFA" />
+              <Typography sx={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'text.primary', whiteSpace: 'nowrap' }}>
+                {t('tenderSource.suppliersResponded', {
+                  responded: TENDER_SUPPLIERS.filter((s) => s.dateResponded).length,
+                  total: TENDER_SUPPLIERS.length,
+                })}
+              </Typography>
+              <Box
+                sx={{
+                  width: { xs: '100%', sm: 120 },
+                  height: 6,
+                  bgcolor: 'action.hover',
+                  borderRadius: 3,
+                  overflow: 'hidden',
+                  flexShrink: 0,
+                }}
+              >
+                <Box
+                  sx={{
+                    width: `${
+                      (TENDER_SUPPLIERS.filter((s) => s.dateResponded).length /
+                        Math.max(TENDER_SUPPLIERS.length, 1)) *
+                      100
+                    }%`,
+                    height: '100%',
+                    bgcolor: '#3E7BFA',
+                    borderRadius: 3,
+                  }}
+                />
+              </Box>
+              {daysRemaining !== null && (
+                <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.75, whiteSpace: 'nowrap' }}>
+                  <Typography
+                    component="span"
+                    sx={{
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: 13,
+                      color: 'text.secondary',
+                    }}
+                  >
+                    {tender.deadline}
+                  </Typography>
+                  <Typography
+                    component="span"
+                    sx={{
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: 13,
+                      color: 'text.disabled',
+                    }}
+                  >
+                    ·
+                  </Typography>
+                  <Typography
+                    component="span"
+                    sx={{
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: 13,
+                      fontWeight: 500,
+                      color: daysRemaining < 0
+                        ? 'error.main'
+                        : daysRemaining <= 7
+                          ? 'warning.main'
+                          : 'text.secondary',
+                    }}
+                  >
+                    {daysRemaining > 0
+                      ? t('tenderSource.daysToDeadline', { count: daysRemaining })
+                      : daysRemaining === 0
+                        ? t('tenderSource.deadlineToday')
+                        : t('tenderSource.deadlineOverdue', { count: Math.abs(daysRemaining) })}
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+            <Button
+              variant="contained"
+              onClick={() => onNavigate('/tenders/evaluate')}
+              sx={{
+                bgcolor: '#3E7BFA',
+                color: '#FFFFFF',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 13,
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                borderRadius: '24px',
+                px: 3,
+                py: 0.75,
+                width: { xs: '100%', sm: 'auto' },
+                boxShadow: 'none',
+                '&:hover': { bgcolor: '#3E7BFA', filter: 'brightness(1.1)', boxShadow: '0px 2px 8px rgba(0,0,0,0.15)' },
+              }}
+            >
+              {t('tenderSource.evaluateBids')}
+            </Button>
+          </Box>
+
           {/* Toolbar */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mt: 2 }}>
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
@@ -362,8 +498,24 @@ export default function TenderSourceView({ navItems, onNavigate, tender, logoUrl
             </TableContainer>
           </Box>
 
-          {/* Bottom Actions */}
-          <Box sx={{ position: 'fixed', bottom: 96, left: 220, right: 0, display: 'flex', justifyContent: 'center', gap: 2, zIndex: 5 }}>
+          {/* Bottom Actions — fixed CTA row. On desktop the row sits centered
+              within the content area (offset 220px to clear the nav drawer);
+              on mobile the drawer is hidden so the row spans the full width
+              and the buttons stack to keep their labels readable. */}
+          <Box
+            sx={{
+              position: 'fixed',
+              bottom: { xs: 76, sm: 96 },
+              left: { xs: 16, md: 220 },
+              right: { xs: 16, md: 0 },
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: { xs: 1, sm: 2 },
+              zIndex: 5,
+            }}
+          >
             {[
               { icon: Mail01Icon, label: t('tenderSource.emailToSelected') },
               { icon: Upload04Icon, label: t('tenderSource.uploadToHub') },
@@ -386,7 +538,8 @@ export default function TenderSourceView({ navItems, onNavigate, tender, logoUrl
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  maxWidth: { xs: 180, sm: 260, md: 'none' },
+                  width: { xs: '100%', sm: 'auto' },
+                  maxWidth: { xs: 'none', sm: 260, md: 'none' },
                   minWidth: 0,
                   '& .MuiButton-startIcon': { flexShrink: 0 },
                   '&:hover': { bgcolor: primaryColor, boxShadow: '0px 2px 8px rgba(0,0,0,0.15)', filter: 'brightness(1.15)' },

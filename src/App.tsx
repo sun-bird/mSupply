@@ -30,12 +30,14 @@ import type { ColorMode } from './views/PreferencesView';
 import StockView from './views/StockView';
 import TendersView from './views/TendersView';
 import type { TenderRow } from './views/TendersView';
+import { INITIAL_TENDERS } from './components/tender/tenderList';
 import TenderItemsView from './views/TenderItemsView';
 import TenderPlanView from './views/TenderPlanView';
 import TenderSourceView from './views/TenderSourceView';
 import TenderEvaluateView from './views/TenderEvaluateView';
 import TenderAwardView from './views/TenderAwardView';
 import TenderStateView from './views/TenderStateView';
+import TenderSuccessView from './views/TenderSuccessView';
 import ThemeEditorView from './views/ThemeEditorView';
 import type { SavedTheme } from './views/ThemeEditorView';
 
@@ -324,7 +326,16 @@ function useNavItems(t: (key: string) => string, onNavigate: (path: string) => v
 export default function App() {
   const { t, i18n } = useTranslation();
   const [activePath, setActivePath] = useState('/dashboard');
+  const [tenders, setTenders] = useState<TenderRow[]>(INITIAL_TENDERS);
   const [selectedTender, setSelectedTender] = useState<TenderRow | null>(null);
+
+  // Apply an edit to a tender. Updates the row in the master list AND the
+  // currently selected tender so every view (banner countdowns, list, etc.)
+  // sees the change immediately.
+  const handleTenderChange = (next: TenderRow) => {
+    setTenders((prev) => prev.map((t) => (t.serial === next.serial ? next : t)));
+    setSelectedTender((prev) => (prev && prev.serial === next.serial ? next : prev));
+  };
   const [primaryColor, setPrimaryColor] = useState(DEFAULT_PRIMARY);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [savedThemes, setSavedThemes] = useState<SavedTheme[]>(loadSavedThemes);
@@ -439,7 +450,7 @@ export default function App() {
   } else if (activePath === '/replenishment/goods-received') {
     content = <GoodsReceivedView navItems={wiredNavItems} onNavigate={setActivePath} />;
   } else if (activePath === '/tenders/plan' && selectedTender) {
-    content = <TenderPlanView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} logoUrl={logoUrl ?? undefined} />;
+    content = <TenderPlanView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} onTenderChange={handleTenderChange} logoUrl={logoUrl ?? undefined} />;
   } else if (activePath === '/tenders/items' && selectedTender) {
     content = <TenderItemsView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} logoUrl={logoUrl ?? undefined} />;
   } else if (activePath === '/tenders/source' && selectedTender) {
@@ -448,10 +459,12 @@ export default function App() {
     content = <TenderEvaluateView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} logoUrl={logoUrl ?? undefined} />;
   } else if (activePath === '/tenders/award' && selectedTender) {
     content = <TenderAwardView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} logoUrl={logoUrl ?? undefined} />;
+  } else if (activePath === '/tenders/success' && selectedTender) {
+    content = <TenderSuccessView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} logoUrl={logoUrl ?? undefined} />;
   } else if (activePath === '/tenders/detail' && selectedTender) {
     content = <TenderStateView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} logoUrl={logoUrl ?? undefined} />;
   } else if (activePath === '/tenders') {
-    content = <TendersView navItems={wiredNavItems} onNavigate={setActivePath} onSelectTender={setSelectedTender} logoUrl={logoUrl ?? undefined} />;
+    content = <TendersView navItems={wiredNavItems} onNavigate={setActivePath} onSelectTender={setSelectedTender} tenders={tenders} logoUrl={logoUrl ?? undefined} />;
   } else if (activePath === '/settings/themes') {
     content = (
       <ThemeEditorView

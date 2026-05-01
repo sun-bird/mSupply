@@ -62,14 +62,23 @@ export default function ViewHeader({
           </IconButton>
         )}
 
-        {/* Back + Title */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+        {/* Back + Title — flexes and truncates so a long title can't push the
+            status select or action group off-screen on narrow viewports. */}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.5,
+            minWidth: 0,
+            flex: '1 1 auto',
+          }}
+        >
           {onBack && (
             <IconButton
               onClick={onBack}
               size="small"
               aria-label={t('common.goBack')}
-              sx={{ color: 'primary.main' }}
+              sx={{ color: 'primary.main', flexShrink: 0 }}
             >
               <HugeiconsIcon icon={ArrowLeft01Icon} size={20} strokeWidth={3} />
             </IconButton>
@@ -79,9 +88,12 @@ export default function ViewHeader({
             sx={{
               fontFamily: 'Inter, sans-serif',
               fontWeight: 600,
-              fontSize: 18,
+              fontSize: { xs: 15, sm: 18 },
               color: 'text.secondary',
               whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              minWidth: 0,
             }}
           >
             {title.includes(' > ') ? (
@@ -90,19 +102,18 @@ export default function ViewHeader({
               </>
             ) : title}
           </Typography>
-          {afterTitle}
+          {afterTitle && <Box sx={{ flexShrink: 0 }}>{afterTitle}</Box>}
         </Box>
 
-        {/* Spacer */}
-        <Box sx={{ flex: 1 }} />
-
-        {/* Primary CTA */}
+        {/* Primary CTA — collapses to an icon-only round button on mobile so
+            the toolbar can hold the title, status select and CTA at 375px. */}
         {primaryAction && (
           <Button
             onClick={primaryAction.onClick}
             variant="outlined"
             size="small"
             startIcon={primaryAction.icon}
+            aria-label={primaryAction.label}
             sx={{
               borderRadius: 24,
               textTransform: 'none',
@@ -114,9 +125,20 @@ export default function ViewHeader({
               bgcolor: 'background.paper',
               boxShadow:
                 '0px 0px 2px rgba(40,41,61,0.04), 0px 4px 8px rgba(96,97,112,0.16)',
-              px: 2.5,
+              px: { xs: 1, sm: 2.5 },
+              minWidth: { xs: 40, sm: 'auto' },
               height: 40,
+              flexShrink: 0,
               whiteSpace: 'nowrap',
+              // On mobile, hide the label and the icon's right margin so the
+              // button renders as a perfect circle around the icon.
+              '& .MuiButton-startIcon': {
+                mr: { xs: 0, sm: 1 },
+                ml: { xs: 0, sm: -0.5 },
+              },
+              '& .button-label': {
+                display: { xs: 'none', sm: 'inline' },
+              },
               '&:hover': {
                 borderColor: 'transparent',
                 bgcolor: 'action.hover',
@@ -125,7 +147,7 @@ export default function ViewHeader({
               },
             }}
           >
-            {primaryAction.label}
+            <Box component="span" className="button-label">{primaryAction.label}</Box>
           </Button>
         )}
 
@@ -163,11 +185,12 @@ export default function ViewHeader({
           </Button>
         ))}
 
-        {/* Combo action buttons */}
+        {/* Combo action buttons — hidden on mobile to keep the toolbar from
+            overflowing; the same actions still sit behind the nav drawer. */}
         {comboActions.length > 0 && (
           <Box
             sx={{
-              display: 'flex',
+              display: { xs: 'none', sm: 'flex' },
               alignItems: 'center',
               gap: 0.5,
               bgcolor: 'background.paper',
@@ -176,6 +199,7 @@ export default function ViewHeader({
               borderRadius: 24,
               px: 1.5,
               height: 40,
+              flexShrink: 0,
             }}
           >
             {comboActions.map((action, i) => (

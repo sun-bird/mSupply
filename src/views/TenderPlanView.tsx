@@ -1,6 +1,5 @@
 import {
   ArrowDown01Icon,
-  Calendar03Icon,
   HelpCircleIcon,
   InformationCircleIcon,
   NoteIcon,
@@ -28,6 +27,10 @@ import type { NavItem } from '../components/nav-layout';
 import DocumentDropZone from '../components/tender/DocumentDropZone';
 import DocumentList from '../components/tender/DocumentList';
 import type { TenderDocument } from '../components/tender/DocumentList';
+import {
+  INITIAL_INTERNAL_DOCS,
+  INITIAL_PROCUREMENT_DOCS,
+} from '../components/tender/tenderDocs';
 import StatusController from '../components/tender/StatusController';
 import type { TenderRow } from './TendersView';
 
@@ -35,13 +38,11 @@ interface TenderPlanViewProps {
   navItems: NavItem[];
   onNavigate: (path: string) => void;
   tender: TenderRow;
+  /** Called when an editable tender field (e.g. a date) is changed so the
+   *  parent (App) can update its `selectedTender` and the new value flows
+   *  through to every other tender view (Source banner, etc.). */
+  onTenderChange?: (next: TenderRow) => void;
   logoUrl?: string;
-}
-
-function randomDate(): string {
-  const day = Math.floor(Math.random() * 28) + 1;
-  const month = Math.floor(Math.random() * 3) + 1;
-  return `${String(day).padStart(2, '0')}.${String(month).padStart(2, '0')}.2025`;
 }
 
 /**
@@ -56,20 +57,23 @@ function formatUploadDate(d: Date = new Date()): string {
   return `${day}.${month}.${year}`;
 }
 
-const INITIAL_INTERNAL_DOCS: TenderDocument[] = [
-  { id: '1', name: 'Budget Allocation.xlsx', uploadDate: randomDate() },
-  { id: '2', name: 'Business Case.docx', uploadDate: randomDate() },
-  { id: '3', name: 'Confidentiality Agreements.pdf', uploadDate: randomDate() },
-  { id: '4', name: 'Evaluation Criteria.docx', uploadDate: randomDate() },
-  { id: '5', name: 'Procurement Plan.pdf', uploadDate: randomDate() },
-  { id: '6', name: 'Risk Register.xlsx', uploadDate: randomDate() },
-];
+/** Convert the tender's `D/M/YYYY` strings into the `YYYY-MM-DD` format that
+ *  `<input type="date">` expects. Returns '' for unparseable input. */
+function toIsoDate(value: string): string {
+  const m = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!m) return '';
+  const [, d, mo, y] = m;
+  return `${y}-${mo.padStart(2, '0')}-${d.padStart(2, '0')}`;
+}
 
-const INITIAL_PROCUREMENT_DOCS: TenderDocument[] = [
-  { id: '7', name: 'RFx document.pdf', uploadDate: randomDate() },
-  { id: '8', name: 'Supplier Guidance Document.pdf', uploadDate: randomDate() },
-  { id: '9', name: 'Terms and Conditions.pdf', uploadDate: randomDate() },
-];
+/** Inverse of {@link toIsoDate}: turn a `YYYY-MM-DD` value from the native
+ *  date input into the `D/M/YYYY` format the rest of the app stores. */
+function fromIsoDate(iso: string): string {
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return iso;
+  const [, y, mo, d] = m;
+  return `${parseInt(d, 10)}/${parseInt(mo, 10)}/${y}`;
+}
 
 const inputSx = {
   bgcolor: 'action.hover',
@@ -125,7 +129,7 @@ function FormRow({ label, children, fullWidth }: FormRowProps) {
   );
 }
 
-export default function TenderPlanView({ navItems, onNavigate, tender, logoUrl }: TenderPlanViewProps) {
+export default function TenderPlanView({ navItems, onNavigate, tender, onTenderChange, logoUrl }: TenderPlanViewProps) {
   const { t } = useTranslation();
   const stepStatus = getTenderSteps(tender.status).find((s) => s.key === 'plan')?.status;
   const showEmpty = stepStatus === 'incomplete';
@@ -138,6 +142,11 @@ export default function TenderPlanView({ navItems, onNavigate, tender, logoUrl }
 
   const [internalDocs, setInternalDocs] = useState<TenderDocument[]>(INITIAL_INTERNAL_DOCS);
   const [procurementDocs, setProcurementDocs] = useState<TenderDocument[]>(INITIAL_PROCUREMENT_DOCS);
+
+  /** Update one date field and bubble the change up so other views see it. */
+  const updateDate = (field: 'advertised' | 'deadline' | 'expires', iso: string) => {
+    onTenderChange?.({ ...tender, [field]: fromIsoDate(iso) });
+  };
 
   const handleAddInternalDocs = (files: File[]) => {
     const newDocs = files.map((f, i) => ({
@@ -300,24 +309,20 @@ export default function TenderPlanView({ navItems, onNavigate, tender, logoUrl }
               {/* Row 6: Advertise Date + Deadline */}
               <FormRow label={t('tenderPlan.advertiseDate')}>
                 <InputBase
-                  value={tender.advertised}
-                  readOnly
+                  type="date"
+                  value={toIsoDate(tender.advertised)}
+                  onChange={(e) => updateDate('advertised', e.target.value)}
                   sx={inputSx}
                   fullWidth
-                  endAdornment={
-                    <HugeiconsIcon icon={Calendar03Icon} size={14} color="currentColor" />
-                  }
                 />
               </FormRow>
               <FormRow label={t('tenderPlan.deadline')}>
                 <InputBase
-                  value={tender.deadline}
-                  readOnly
+                  type="date"
+                  value={toIsoDate(tender.deadline)}
+                  onChange={(e) => updateDate('deadline', e.target.value)}
                   sx={inputSx}
                   fullWidth
-                  endAdornment={
-                    <HugeiconsIcon icon={Calendar03Icon} size={14} color="currentColor" />
-                  }
                 />
               </FormRow>
 
@@ -340,13 +345,11 @@ export default function TenderPlanView({ navItems, onNavigate, tender, logoUrl }
               </FormRow>
               <FormRow label={t('tenderPlan.tenderExpiry')}>
                 <InputBase
-                  value={tender.expires}
-                  readOnly
+                  type="date"
+                  value={toIsoDate(tender.expires)}
+                  onChange={(e) => updateDate('expires', e.target.value)}
                   sx={inputSx}
                   fullWidth
-                  endAdornment={
-                    <HugeiconsIcon icon={Calendar03Icon} size={14} color="currentColor" />
-                  }
                 />
               </FormRow>
 

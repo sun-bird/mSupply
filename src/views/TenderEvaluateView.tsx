@@ -157,26 +157,46 @@ export default function TenderEvaluateView({ navItems, onNavigate, tender, logoU
       ) : (
         <>
       <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
-        {/* Info Banner */}
+        {/* Info Banner — stacks vertically on mobile so the progress bar
+            and CTA both have room without clipping the bid count text. */}
         <Box
           sx={{
             bgcolor: 'background.paper',
             borderRadius: '10px',
-            px: 3,
+            px: { xs: 2, sm: 3 },
             py: 2,
             mt: 2,
             mb: 2,
             display: 'flex',
-            alignItems: 'center',
+            flexDirection: { xs: 'column', sm: 'row' },
+            alignItems: { xs: 'stretch', sm: 'center' },
             justifyContent: 'space-between',
+            gap: { xs: 1.5, sm: 0 },
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5,
+              minWidth: 0,
+              flexWrap: { xs: 'wrap', sm: 'nowrap' },
+            }}
+          >
             <HugeiconsIcon icon={NoteIcon} size={24} color="#3E7BFA" />
             <Typography sx={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'text.primary', whiteSpace: 'nowrap' }}>
               {t('tenderEvaluate.bidsReceived', { received: 14, total: 20 })}
             </Typography>
-            <Box sx={{ width: 120, height: 6, bgcolor: 'action.hover', borderRadius: 3, overflow: 'hidden', flexShrink: 0 }}>
+            <Box
+              sx={{
+                width: { xs: '100%', sm: 120 },
+                height: 6,
+                bgcolor: 'action.hover',
+                borderRadius: 3,
+                overflow: 'hidden',
+                flexShrink: 0,
+              }}
+            >
               <Box sx={{ width: `${(14 / 20) * 100}%`, height: '100%', bgcolor: '#3E7BFA', borderRadius: 3 }} />
             </Box>
           </Box>
@@ -193,6 +213,7 @@ export default function TenderEvaluateView({ navItems, onNavigate, tender, logoU
               borderRadius: '24px',
               px: 3,
               py: 0.75,
+              width: { xs: '100%', sm: 'auto' },
               boxShadow: 'none',
               '&:hover': { bgcolor: '#3E7BFA', filter: 'brightness(1.1)', boxShadow: '0px 2px 8px rgba(0,0,0,0.15)' },
             }}

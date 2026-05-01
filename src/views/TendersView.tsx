@@ -51,15 +51,6 @@ export interface TenderRow {
   expires: string;
 }
 
-const rows: TenderRow[] = [
-  { serial: 'TN-0047', status: 'Planning', method: 'RFQ', type: 'Supplies', description: 'Total Parental Nutrition (TPN)', reference: 'RFQ - 2025/009', created: '15/3/2025', advertised: '2/4/2025', deadline: '30/4/2025', expires: '15/3/2027' },
-  { serial: 'TN-0046', status: 'Planning', method: 'RFQ', type: 'Supplies', description: 'Drug Eluting Stents', reference: 'RFQ - 2025/012', created: '22/4/2025', advertised: '10/5/2025', deadline: '7/6/2025', expires: '22/4/2027' },
-  { serial: 'TN-0045', status: 'Advertised', method: 'RFQ', type: 'Supplies', description: 'Various Dental Burs', reference: 'RFQ - 2025/008', created: '3/2/2025', advertised: '18/2/2025', deadline: '18/3/2025', expires: '3/2/2027' },
-  { serial: 'TN-0044', status: 'Evaluation', method: 'RFT', type: 'Supplies', description: 'Surgical Instruments', reference: 'RFT - 2025/003', created: '10/1/2025', advertised: '25/1/2025', deadline: '22/2/2025', expires: '10/1/2027' },
-  { serial: 'TN-0043', status: 'Evaluation', method: 'RFT', type: 'Supplies', description: 'Various HIV Medicines', reference: 'RFT - 2025/004', created: '28/1/2025', advertised: '14/2/2025', deadline: '14/3/2025', expires: '28/1/2027' },
-  { serial: 'TN-0042', status: 'Award', method: 'RFQ', type: 'Supplies', description: 'Intravenous Infusion Pumps…', reference: 'RFQ - 2025/006', created: '5/12/2024', advertised: '20/12/2024', deadline: '20/1/2025', expires: '5/12/2026' },
-];
-
 const statusColors: Record<string, { dot: string; bg: string }> = {
   Planning: { dot: '#8E8EA9', bg: 'rgba(142,142,169,0.15)' },
   Advertised: { dot: '#FDAC42', bg: 'rgba(253,172,66,0.2)' },
@@ -72,10 +63,13 @@ interface TendersViewProps {
   navItems: NavItem[];
   onNavigate: (path: string) => void;
   onSelectTender: (tender: TenderRow) => void;
+  /** Live list of tenders. Owned by App so edits in a tender's plan view
+   *  flow back into this list. */
+  tenders: TenderRow[];
   logoUrl?: string;
 }
 
-export default function TendersView({ navItems, onNavigate, onSelectTender, logoUrl }: TendersViewProps) {
+export default function TendersView({ navItems, onNavigate, onSelectTender, tenders, logoUrl }: TendersViewProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const primaryColor = theme.palette.primary.main;
@@ -95,16 +89,16 @@ export default function TendersView({ navItems, onNavigate, onSelectTender, logo
   };
 
   const statusFilters = [
-    { key: 'active', label: t('tenders.activeTenders'), count: rows.length },
-    { key: 'Planning', label: t('tenders.planning'), count: rows.filter((r) => r.status === 'Planning').length },
-    { key: 'Advertised', label: t('tenders.advertised'), count: rows.filter((r) => r.status === 'Advertised').length },
-    { key: 'Evaluation', label: t('tenders.evaluation'), count: rows.filter((r) => r.status === 'Evaluation').length },
-    { key: 'Award', label: t('tenders.award'), count: rows.filter((r) => r.status === 'Award').length },
-    { key: 'Finalised', label: t('tenders.finalised'), count: rows.filter((r) => r.status === 'Finalised').length },
+    { key: 'active', label: t('tenders.activeTenders'), count: tenders.length },
+    { key: 'Planning', label: t('tenders.planning'), count: tenders.filter((r) => r.status === 'Planning').length },
+    { key: 'Advertised', label: t('tenders.advertised'), count: tenders.filter((r) => r.status === 'Advertised').length },
+    { key: 'Evaluation', label: t('tenders.evaluation'), count: tenders.filter((r) => r.status === 'Evaluation').length },
+    { key: 'Award', label: t('tenders.award'), count: tenders.filter((r) => r.status === 'Award').length },
+    { key: 'Finalised', label: t('tenders.finalised'), count: tenders.filter((r) => r.status === 'Finalised').length },
   ];
 
   const filteredRows = useMemo(() => {
-    let result = rows.filter((row) => {
+    let result = tenders.filter((row) => {
       const matchesStatus = activeFilter === 'active' || row.status === activeFilter;
       if (!matchesStatus) return false;
       if (!searchQuery) return true;
@@ -127,7 +121,7 @@ export default function TendersView({ navItems, onNavigate, onSelectTender, logo
       });
     }
     return result;
-  }, [activeFilter, searchQuery, sortKey, sortDir]);
+  }, [tenders, activeFilter, searchQuery, sortKey, sortDir]);
 
   return (
     <NavLayout

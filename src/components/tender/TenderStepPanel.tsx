@@ -1,11 +1,11 @@
 import {
   ArrowRight01Icon,
+  CheckListIcon,
   CheckmarkCircle01Icon,
-  FileEditIcon,
-  Package02Icon,
-  UserGroupIcon,
+  CrowdfundingIcon,
+  Package03Icon,
   TaskEdit01Icon,
-  AwardIcon,
+  Award05Icon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Box, Button, Typography, useTheme } from '@mui/material';
@@ -22,12 +22,12 @@ interface TenderStepPanelProps {
   actionLabel?: string;
 }
 
-const STEP_ICONS: Record<string, typeof FileEditIcon> = {
+const STEP_ICONS: Record<string, typeof CheckListIcon> = {
   plan: TaskEdit01Icon,
-  items: Package02Icon,
-  source: UserGroupIcon,
-  evaluate: FileEditIcon,
-  award: AwardIcon,
+  items: Package03Icon,
+  source: CrowdfundingIcon,
+  evaluate: CheckListIcon,
+  award: Award05Icon,
 };
 
 export default function TenderStepPanel({
@@ -45,7 +45,7 @@ export default function TenderStepPanel({
   const isNextUp = step.status === 'nextUp';
   const isIncomplete = step.status === 'incomplete';
 
-  const StepIcon = STEP_ICONS[step.key] ?? FileEditIcon;
+  const StepIcon = STEP_ICONS[step.key] ?? CheckListIcon;
 
   // Format the count label via i18n. `award` has no count key, so the
   // panel skips the label entirely for that step.
@@ -58,11 +58,11 @@ export default function TenderStepPanel({
       sx={{
         bgcolor: 'background.paper',
         borderRadius: '12px',
-        px: 3,
-        py: 2.5,
+        px: { xs: 2, sm: 3 },
+        py: { xs: 1.75, sm: 2.5 },
         display: 'flex',
         alignItems: 'center',
-        gap: 2,
+        gap: { xs: 1.5, sm: 2 },
         boxShadow: isNextUp
           ? '0px 0px 2px rgba(40,41,61,0.04), 0px 4px 8px rgba(96,97,112,0.16)'
           : '0px 0px 2px rgba(40,41,61,0.04)',
@@ -105,20 +105,24 @@ export default function TenderStepPanel({
         sx={{
           fontFamily: 'Inter, sans-serif',
           fontWeight: 500,
-          fontSize: 18,
+          fontSize: { xs: 16, sm: 18 },
           color: isIncomplete ? 'text.secondary' : 'text.primary',
-          minWidth: 80,
+          // On mobile let the title flex to fill the available space so the
+          // count + chevron stay pinned to the right; reserve a baseline
+          // width on larger screens for visual rhythm.
+          flex: { xs: 1, sm: 'none' },
+          minWidth: { xs: 0, sm: 80 },
         }}
       >
         {title}
       </Typography>
 
-      {/* Step Icon */}
+      {/* Step Icon — hidden on mobile to give the title and count more room. */}
       <Box
         sx={{
           width: 48,
           height: 48,
-          display: 'flex',
+          display: { xs: 'none', sm: 'flex' },
           alignItems: 'center',
           justifyContent: 'center',
           flexShrink: 0,
@@ -131,13 +135,15 @@ export default function TenderStepPanel({
         />
       </Box>
 
-      {/* Description */}
+      {/* Description — hidden on mobile; the title carries the row's intent
+          and the description re-appears once the panel has horizontal room. */}
       <Typography
         sx={{
           fontFamily: 'Inter, sans-serif',
           fontSize: 12,
           color: 'text.secondary',
           flex: 1,
+          display: { xs: 'none', sm: 'block' },
         }}
       >
         {description}
@@ -194,7 +200,7 @@ export default function TenderStepPanel({
         <HugeiconsIcon
           icon={ArrowRight01Icon}
           size={20}
-          color={isIncomplete ? '#C7C7D1' : '#555770'}
+          color={isIncomplete ? '#C7C7D1' : primaryColor}
         />
       </Box>
     </Box>

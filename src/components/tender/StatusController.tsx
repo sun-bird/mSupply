@@ -23,7 +23,9 @@ export default function StatusController({ activeStep, onNavigate }: StatusContr
   const { t } = useTranslation();
   const theme = useTheme();
   const primaryColor = theme.palette.primary.main;
-  const isSmall = useMediaQuery(theme.breakpoints.down('md'));
+  // Fold to a Select once the header gets crowded. Below 700px the chip row
+  // and the title start fighting for space, so collapse to a dropdown there.
+  const isSmall = useMediaQuery(theme.breakpoints.down(700));
 
   const activeIndex = STEPS.indexOf(activeStep);
 

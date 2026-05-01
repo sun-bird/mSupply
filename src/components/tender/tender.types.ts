@@ -1,3 +1,7 @@
+import { TENDER_DOC_COUNT } from './tenderDocs';
+import { TENDER_ITEM_COUNT } from './tenderItems';
+import { TENDER_SUPPLIER_COUNT } from './tenderSuppliers';
+
 export type TenderStepStatus = 'complete' | 'nextUp' | 'incomplete';
 
 export type TenderStepKey = 'plan' | 'items' | 'source' | 'evaluate' | 'award';
@@ -22,9 +26,11 @@ const STATUS_TO_NEXT_UP_INDEX: Record<string, number> = {
 };
 
 const MOCK_COUNTS: Record<TenderStepKey, number> = {
-  plan: 9,
-  items: 23,
-  source: 4,
+  // Sum of internal + procurement documents shown on the Plan view, so the
+  // panel badge stays in sync with the actual seed data.
+  plan: TENDER_DOC_COUNT,
+  items: TENDER_ITEM_COUNT,
+  source: TENDER_SUPPLIER_COUNT,
   evaluate: 8,
   award: 0,
 };

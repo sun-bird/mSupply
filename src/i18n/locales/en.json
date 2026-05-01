@@ -80,8 +80,8 @@
     "countDocuments_other": "{{count}} documents",
     "countItems_one": "{{count}} item",
     "countItems_other": "{{count}} items",
-    "countSuppliers_one": "{{count}} supplier",
-    "countSuppliers_other": "{{count}} suppliers",
+    "countSuppliers_one": "{{count}} supplier selected",
+    "countSuppliers_other": "{{count}} suppliers selected",
     "countBidsEvaluated_one": "{{count}} bid evaluated",
     "countBidsEvaluated_other": "{{count}} bids evaluated"
   },
@@ -148,7 +148,14 @@
     "contactDetails": "Contact Details",
     "pastTenders": "Past Tenders",
     "commentsInternal": "Comments (Internal)",
-    "commentPlaceholder": "Add a comment..."
+    "commentPlaceholder": "Add a comment...",
+    "suppliersResponded": "{{responded}} of {{total}} suppliers responded.",
+    "evaluateBids": "Evaluate Bids",
+    "daysToDeadline_one": "{{count}} day to deadline",
+    "daysToDeadline_other": "{{count}} days to deadline",
+    "deadlineToday": "Deadline today",
+    "deadlineOverdue_one": "{{count}} day overdue",
+    "deadlineOverdue_other": "{{count}} days overdue"
   },
   "tenderEvaluate": {
     "title": "Evaluate",
@@ -250,5 +257,15 @@
     "evaluateDescription": "Source bids from suppliers to unlock the evaluation step",
     "awardDescription": "Bids need to be evaluated before awarding tenders",
     "backToOverview": "Tender overview"
+  },
+  "tenderSuccess": {
+    "description": "This tender has been finalised. Awarded items have been sent to your suppliers and purchase orders are on the way.",
+    "backToTenders": "Back to tenders",
+    "reports": {
+      "evaluation": "Evaluation\nReport",
+      "winningLines": "Winning Tender\nLines Only",
+      "allResponses": "All Supplier\nResponses",
+      "preferredOnly": "Preferred Suppliers\nOnly"
+    }
   }
 }
