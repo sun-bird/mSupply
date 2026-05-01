@@ -3,7 +3,6 @@ import {
   ArrowDown01Icon,
   EyeIcon,
   HelpCircleIcon,
-  MoreHorizontalIcon,
   PrinterIcon,
   Search01Icon,
   Settings04Icon,
@@ -11,11 +10,15 @@ import {
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
   Box,
+  Button,
   Checkbox,
   Chip,
   IconButton,
   InputAdornment,
   InputBase,
+  MenuItem,
+  Popover,
+  Select,
   SvgIcon,
   Table,
   TableBody,
@@ -31,6 +34,16 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLayout } from '../components/nav-layout';
 import type { NavItem } from '../components/nav-layout';
+import DateInput from '../components/tender/DateInput';
+
+/** Parse a `D/M/YYYY` date string into a local-time Date, or `null` for
+ *  malformed input. Mirrors the helper used elsewhere in the tender views. */
+function parseDmy(value: string): Date | null {
+  const parts = value.split('/').map((p) => parseInt(p, 10));
+  if (parts.length !== 3 || parts.some((n) => Number.isNaN(n))) return null;
+  const [day, month, year] = parts;
+  return new Date(year, month - 1, day);
+}
 
 const ThinCheckboxIcon = () => (
   <SvgIcon sx={{ fontSize: 18 }}>
@@ -49,6 +62,13 @@ export interface TenderRow {
   advertised: string;
   deadline: string;
   expires: string;
+  // Optional Tender Details fields. Captured by the New Tender form and
+  // editable on the Plan view; absent on the original seed rows.
+  incoterm?: string;
+  workflow?: string;
+  category?: string;
+  tenderPeriod?: string;
+  notes?: string;
 }
 
 const statusColors: Record<string, { dot: string; bg: string }> = {
@@ -78,6 +98,23 @@ export default function TendersView({ navItems, onNavigate, onSelectTender, tend
   const [checkedRows, setCheckedRows] = useState<Set<number>>(new Set());
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  // Filter dropdown — opens a Popover anchored to the "Show All" trigger.
+  const [filterAnchor, setFilterAnchor] = useState<HTMLElement | null>(null);
+  // Date range filter (deadline-based). ISO strings (`YYYY-MM-DD`) so they
+  // pair directly with the DateInput component.
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+
+  const dateFromMs = dateFrom ? parseDmy(dateFrom.split('-').reverse().join('/'))?.getTime() ?? null : null;
+  const dateToMs = dateTo ? parseDmy(dateTo.split('-').reverse().join('/'))?.getTime() ?? null : null;
+  const filtersActive = activeFilter !== 'active' || !!dateFrom || !!dateTo;
+  const activeFilterCount = (activeFilter !== 'active' ? 1 : 0) + (dateFrom || dateTo ? 1 : 0);
+
+  const clearFilters = () => {
+    setActiveFilter('active');
+    setDateFrom('');
+    setDateTo('');
+  };
 
   const handleSort = (key: string) => {
     if (sortKey === key) {
@@ -101,6 +138,15 @@ export default function TendersView({ navItems, onNavigate, onSelectTender, tend
     let result = tenders.filter((row) => {
       const matchesStatus = activeFilter === 'active' || row.status === activeFilter;
       if (!matchesStatus) return false;
+
+      // Deadline-based date range.
+      if (dateFromMs !== null || dateToMs !== null) {
+        const deadlineMs = parseDmy(row.deadline)?.getTime();
+        if (deadlineMs == null) return false;
+        if (dateFromMs !== null && deadlineMs < dateFromMs) return false;
+        if (dateToMs !== null && deadlineMs > dateToMs) return false;
+      }
+
       if (!searchQuery) return true;
       const q = searchQuery.toLowerCase();
       return (
@@ -121,7 +167,7 @@ export default function TendersView({ navItems, onNavigate, onSelectTender, tend
       });
     }
     return result;
-  }, [tenders, activeFilter, searchQuery, sortKey, sortDir]);
+  }, [tenders, activeFilter, searchQuery, sortKey, sortDir, dateFromMs, dateToMs]);
 
   return (
     <NavLayout
@@ -134,7 +180,7 @@ export default function TendersView({ navItems, onNavigate, onSelectTender, tend
         primaryAction: {
           label: t('tenders.newTender'),
           icon: <HugeiconsIcon icon={AddCircleIcon} size={18} color={primaryColor} />,
-          onClick: () => {},
+          onClick: () => onNavigate('/tenders/new'),
         },
         secondaryActions: [
           {
@@ -269,13 +315,140 @@ export default function TendersView({ navItems, onNavigate, onSelectTender, tend
             }}
           />
         </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, cursor: 'pointer' }}>
-          <Typography sx={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 14, color: 'text.secondary' }}>
-            {t('tenders.showAll')}
+        <Box
+          onClick={(e) => setFilterAnchor(e.currentTarget)}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.5,
+            cursor: 'pointer',
+            color: filtersActive ? primaryColor : 'text.secondary',
+            transition: 'color 0.15s',
+            '&:hover': { color: primaryColor },
+          }}
+        >
+          <Typography sx={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 14, color: 'inherit' }}>
+            {filtersActive
+              ? t('tenders.filtersApplied', { count: activeFilterCount })
+              : t('tenders.showAll')}
           </Typography>
-          <HugeiconsIcon icon={ArrowDown01Icon} size={18} />
+          <HugeiconsIcon icon={ArrowDown01Icon} size={18} color="currentColor" />
         </Box>
       </Box>
+
+      <Popover
+        open={!!filterAnchor}
+        anchorEl={filterAnchor}
+        onClose={() => setFilterAnchor(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        slotProps={{ paper: { sx: { borderRadius: '10px', mt: 0.5, p: 2, width: 320, display: 'flex', flexDirection: 'column', gap: 2 } } }}
+      >
+        <Box>
+          <Typography sx={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 13, color: 'text.secondary', mb: 0.75 }}>
+            {t('tenders.filterStatusLabel')}
+          </Typography>
+          <Select
+            size="small"
+            fullWidth
+            value={activeFilter}
+            onChange={(e) => setActiveFilter(e.target.value)}
+            sx={{
+              bgcolor: 'action.hover',
+              borderRadius: '8px',
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 14,
+              '& .MuiSelect-select': { py: 0.75, paddingLeft: '12px' },
+              '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+              '&:hover .MuiOutlinedInput-notchedOutline': { border: 'none' },
+              '&.Mui-focused .MuiOutlinedInput-notchedOutline': { border: 'none' },
+            }}
+            IconComponent={() => (
+              <Box sx={{ pr: 1, display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
+                <HugeiconsIcon icon={ArrowDown01Icon} size={14} color="currentColor" />
+              </Box>
+            )}
+          >
+            {statusFilters.map((f) => (
+              <MenuItem key={f.key} value={f.key} sx={{ fontFamily: 'Inter, sans-serif', fontSize: 14 }}>
+                {f.label} ({f.count})
+              </MenuItem>
+            ))}
+          </Select>
+        </Box>
+
+        <Box>
+          <Typography sx={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 13, color: 'text.secondary', mb: 0.75 }}>
+            {t('tenders.filterDeadlineRange')}
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <DateInput
+              value={dateFrom}
+              onChange={setDateFrom}
+              sx={{
+                bgcolor: 'action.hover',
+                borderRadius: '8px',
+                px: 1.5,
+                py: 0.75,
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 14,
+                color: dateFrom ? 'text.primary' : 'text.disabled',
+                height: 36,
+              }}
+            />
+            <Typography sx={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'text.disabled', flexShrink: 0 }}>
+              –
+            </Typography>
+            <DateInput
+              value={dateTo}
+              onChange={setDateTo}
+              sx={{
+                bgcolor: 'action.hover',
+                borderRadius: '8px',
+                px: 1.5,
+                py: 0.75,
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 14,
+                color: dateTo ? 'text.primary' : 'text.disabled',
+                height: 36,
+              }}
+            />
+          </Box>
+        </Box>
+
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 0.5 }}>
+          <Button
+            onClick={clearFilters}
+            disabled={!filtersActive}
+            sx={{
+              fontFamily: 'Inter, sans-serif',
+              textTransform: 'none',
+              fontSize: 13,
+              color: 'text.secondary',
+              '&:hover': { color: primaryColor, bgcolor: 'transparent' },
+            }}
+          >
+            {t('tenders.filterClear')}
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => setFilterAnchor(null)}
+            sx={{
+              bgcolor: primaryColor,
+              color: '#FFFFFF',
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 13,
+              fontWeight: 500,
+              textTransform: 'none',
+              borderRadius: '24px',
+              boxShadow: 'none',
+              '&:hover': { bgcolor: primaryColor, filter: 'brightness(1.1)', boxShadow: '0px 2px 8px rgba(0,0,0,0.15)' },
+            }}
+          >
+            {t('tenders.filterDone')}
+          </Button>
+        </Box>
+      </Popover>
 
       {/* Data Table */}
       <Box sx={{
@@ -295,11 +468,12 @@ export default function TendersView({ navItems, onNavigate, onSelectTender, tend
                 <TableCell padding="checkbox" sx={{ borderBottom: '1px solid', borderColor: 'divider', py: '10px' }}>
                   <Checkbox size="small" icon={<ThinCheckboxIcon />} sx={{ color: '#3E7BFA', '&.Mui-checked': { color: '#3E7BFA' }, '& .MuiSvgIcon-root': { fontSize: 18 } }} />
                 </TableCell>
-                <TableCell sx={{ width: 40, borderBottom: '1px solid', borderColor: 'divider', py: '10px' }} />
-                {[
+                {([
                   { key: 'serial', label: t('tenders.serial') },
                   { key: 'status', label: t('tenders.status') },
-                  { key: 'method', label: t('tenders.method') },
+                  // Method is always RFQ/RFT — clamp the column so the
+                  // header doesn't reserve more width than the content.
+                  { key: 'method', label: t('tenders.method'), width: 80 },
                   { key: 'type', label: t('tenders.type') },
                   { key: 'description', label: t('tenders.description'), minWidth: 160 },
                   { key: 'reference', label: t('tenders.reference') },
@@ -307,7 +481,7 @@ export default function TendersView({ navItems, onNavigate, onSelectTender, tend
                   { key: 'advertised', label: t('tenders.advertised') },
                   { key: 'deadline', label: t('tenders.deadline') },
                   { key: 'expires', label: t('tenders.expires') },
-                ].map((col) => (
+                ] as Array<{ key: string; label: string; minWidth?: number; width?: number }>).map((col) => (
                   <TableCell
                     key={col.key}
                     sx={{
@@ -322,6 +496,7 @@ export default function TendersView({ navItems, onNavigate, onSelectTender, tend
                       fontFamily: 'Inter, sans-serif',
                       whiteSpace: 'normal',
                       ...(col.minWidth && { minWidth: col.minWidth }),
+                      ...(col.width && { width: col.width, maxWidth: col.width }),
                     }}
                   >
                     <TableSortLabel
@@ -357,11 +532,6 @@ export default function TendersView({ navItems, onNavigate, onSelectTender, tend
                         onChange={(e) => { e.stopPropagation(); setCheckedRows((prev) => { const next = new Set(prev); if (next.has(idx)) next.delete(idx); else next.add(idx); return next; }); }}
                         sx={{ color: '#3E7BFA', '&.Mui-checked': { color: '#3E7BFA' }, '& .MuiSvgIcon-root': { fontSize: 18 } }}
                       />
-                    </TableCell>
-                    <TableCell sx={{ py: '10px', width: 40 }}>
-                      <IconButton size="small" sx={{ color: 'text.secondary' }}>
-                        <HugeiconsIcon icon={MoreHorizontalIcon} size={14} />
-                      </IconButton>
                     </TableCell>
                     <TableCell sx={{ fontSize: 12, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: '10px' }}>
                       {row.serial}
@@ -406,16 +576,18 @@ export default function TendersView({ navItems, onNavigate, onSelectTender, tend
                       {row.reference}
                     </TableCell>
                     <TableCell sx={{ fontSize: 12, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: '10px', whiteSpace: 'nowrap' }}>
-                      {row.created}
+                      {row.created || <Box component="span" sx={{ color: 'text.disabled' }}>N/A</Box>}
                     </TableCell>
                     <TableCell sx={{ fontSize: 12, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: '10px', whiteSpace: 'nowrap' }}>
-                      {row.advertised}
+                      {row.status === 'Planning' || !row.advertised
+                        ? <Box component="span" sx={{ color: 'text.disabled' }}>N/A</Box>
+                        : row.advertised}
                     </TableCell>
                     <TableCell sx={{ fontSize: 12, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: '10px', whiteSpace: 'nowrap' }}>
-                      {row.deadline}
+                      {row.deadline || <Box component="span" sx={{ color: 'text.disabled' }}>N/A</Box>}
                     </TableCell>
                     <TableCell sx={{ fontSize: 12, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: '10px', whiteSpace: 'nowrap' }}>
-                      {row.expires}
+                      {row.expires || <Box component="span" sx={{ color: 'text.disabled' }}>N/A</Box>}
                     </TableCell>
                   </TableRow>
                 );

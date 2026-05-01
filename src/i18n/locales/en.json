@@ -58,7 +58,13 @@
     "created": "Created",
     "deadline": "Deadline",
     "expires": "Expires",
-    "noTendersFound": "No tenders found."
+    "noTendersFound": "No tenders found.",
+    "filtersApplied_one": "{{count}} filter",
+    "filtersApplied_other": "{{count}} filters",
+    "filterStatusLabel": "Status",
+    "filterDeadlineRange": "Deadline range",
+    "filterClear": "Clear",
+    "filterDone": "Done"
   },
   "tenderState": {
     "title": "Tender State",
@@ -84,6 +90,12 @@
     "countSuppliers_other": "{{count}} suppliers selected",
     "countBidsEvaluated_one": "{{count}} bid evaluated",
     "countBidsEvaluated_other": "{{count}} bids evaluated"
+  },
+  "tenderNew": {
+    "title": "New Tender",
+    "save": "Create Tender",
+    "cancel": "Cancel",
+    "requiredFields": "Description and Deadline are required."
   },
   "tenderPlan": {
     "title": "Plan",
@@ -124,8 +136,13 @@
     "productSpecifications": "Product Specifications",
     "conditions": "Conditions",
     "next": "Next",
-    "search": "Search...",
-    "showAll": "Show All"
+    "search": "Filter...",
+    "showAll": "Show All",
+    "itemsInTender_one": "{{count}} item in this tender.",
+    "itemsInTender_other": "{{count}} items in this tender.",
+    "sourceSuppliers": "Source Suppliers",
+    "addItemsFirst": "Add at least one item before sourcing",
+    "tenderAdvertised": "This tender has been advertised"
   },
   "tenderSource": {
     "title": "Source",
@@ -153,6 +170,8 @@
     "evaluateBids": "Evaluate Bids",
     "daysToDeadline_one": "{{count}} day to deadline",
     "daysToDeadline_other": "{{count}} days to deadline",
+    "daysToDeadlineDate_one": "{{count}} day to {{date}}",
+    "daysToDeadlineDate_other": "{{count}} days to {{date}}",
     "deadlineToday": "Deadline today",
     "deadlineOverdue_one": "{{count}} day overdue",
     "deadlineOverdue_other": "{{count}} days overdue"
@@ -161,6 +180,10 @@
     "title": "Evaluate",
     "bidsReceived": "{{received}} out of {{total}} bids received.",
     "evaluateBids": "Evaluate Bids",
+    "bidsPending_one": "{{count}} bid pending",
+    "bidsPending_other": "{{count}} bids pending",
+    "bidDeadlineIs": "Bid deadline is {{date}}",
+    "biddingClosed": "Bidding closed {{date}}",
     "itemNumber": "Item Number",
     "itemCode": "Item Code",
     "itemName": "Item Name",
@@ -245,14 +268,38 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "openNavigation": "Open navigation",
-    "goBack": "Go back"
+    "goBack": "Go back",
+    "close": "Close"
+  },
+  "evaluateItemDialog": {
+    "title": "Evaluate Item {{index}}/{{total}}",
+    "headerItem": "Evaluate Item {{index}}/{{total}}",
+    "priceBlind": "Price Blind",
+    "showConditions": "Show Conditions & Comments",
+    "supplier": "Supplier",
+    "manufacturer": "Manufacturer",
+    "unitType": "Unit Type",
+    "packSize": "Pack Size",
+    "numberPacks": "Number Packs",
+    "totalUnits": "Total Units",
+    "packs": "Packs",
+    "delivery": "Delivery",
+    "expiry": "Expiry",
+    "pricePerPack": "Price per Pack",
+    "next": "Next",
+    "previous": "Previous item",
+    "nextItem": "Next item",
+    "weeks_one": "{{count}} Week",
+    "weeks_other": "{{count}} Weeks",
+    "accept": "Accept bid",
+    "reject": "Reject bid"
   },
   "footer": {
     "syncedAgo": "Synced {{time}} ago"
   },
   "emptyState": {
     "planDescription": "This tender doesn't have a plan yet. Set the criteria and upload your procurement documents to get started.",
-    "itemsDescription": "There are currently no items in this tender. Add items to continue.",
+    "itemsDescription": "There are currently no items in this tender.\nAdd items to continue.",
     "sourceDescription": "Suppliers will appear here once you've invited them to bid",
     "evaluateDescription": "Source bids from suppliers to unlock the evaluation step",
     "awardDescription": "Bids need to be evaluated before awarding tenders",

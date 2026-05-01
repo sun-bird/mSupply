@@ -15,6 +15,8 @@ import {
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { CssBaseline, ThemeProvider, createTheme, useMediaQuery } from '@mui/material';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
 import rtlPlugin from 'stylis-plugin-rtl';
@@ -38,6 +40,7 @@ import TenderEvaluateView from './views/TenderEvaluateView';
 import TenderAwardView from './views/TenderAwardView';
 import TenderStateView from './views/TenderStateView';
 import TenderSuccessView from './views/TenderSuccessView';
+import TenderNewView from './views/TenderNewView';
 import ThemeEditorView from './views/ThemeEditorView';
 import type { SavedTheme } from './views/ThemeEditorView';
 
@@ -336,6 +339,11 @@ export default function App() {
     setTenders((prev) => prev.map((t) => (t.serial === next.serial ? next : t)));
     setSelectedTender((prev) => (prev && prev.serial === next.serial ? next : prev));
   };
+
+  // Append a freshly-created tender to the top of the list.
+  const handleCreateTender = (next: TenderRow) => {
+    setTenders((prev) => [next, ...prev]);
+  };
   const [primaryColor, setPrimaryColor] = useState(DEFAULT_PRIMARY);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [savedThemes, setSavedThemes] = useState<SavedTheme[]>(loadSavedThemes);
@@ -463,6 +471,8 @@ export default function App() {
     content = <TenderSuccessView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} logoUrl={logoUrl ?? undefined} />;
   } else if (activePath === '/tenders/detail' && selectedTender) {
     content = <TenderStateView navItems={wiredNavItems} onNavigate={setActivePath} tender={selectedTender} logoUrl={logoUrl ?? undefined} />;
+  } else if (activePath === '/tenders/new') {
+    content = <TenderNewView navItems={wiredNavItems} onNavigate={setActivePath} onCreate={handleCreateTender} logoUrl={logoUrl ?? undefined} />;
   } else if (activePath === '/tenders') {
     content = <TendersView navItems={wiredNavItems} onNavigate={setActivePath} onSelectTender={setSelectedTender} tenders={tenders} logoUrl={logoUrl ?? undefined} />;
   } else if (activePath === '/settings/themes') {
@@ -525,8 +535,10 @@ export default function App() {
   return (
     <CacheProvider value={emotionCache}>
       <ThemeProvider theme={theme}>
-        <CssBaseline />
-        {content}
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <CssBaseline />
+          {content}
+        </LocalizationProvider>
       </ThemeProvider>
     </CacheProvider>
   );

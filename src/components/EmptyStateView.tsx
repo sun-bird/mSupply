@@ -74,6 +74,9 @@ export default function EmptyStateView({
           fontSize: 16,
           color: 'text.secondary',
           lineHeight: 1.6,
+          // Honor `\n` in the translation strings so callers can split a
+          // long empty-state description across lines without HTML.
+          whiteSpace: 'pre-line',
           // Parent uses gap:4 (32px) between all children. Add 28px of top
           // margin so the image→text gap reads as 60px while text→button
           // stays at the default 32px.

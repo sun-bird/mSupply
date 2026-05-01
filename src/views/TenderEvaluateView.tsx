@@ -2,6 +2,7 @@ import {
   ArrowDown01Icon,
   EyeIcon,
   HelpCircleIcon,
+  CheckListIcon,
   NoteIcon,
   PrinterIcon,
   Search01Icon,
@@ -33,7 +34,22 @@ import EmptyStateView from '../components/EmptyStateView';
 import { getTenderSteps } from '../components/tender/tender.types';
 import type { NavItem } from '../components/nav-layout';
 import StatusController from '../components/tender/StatusController';
+import EvaluateItemDialog, {
+  type EvaluateItemSummary,
+  type SupplierBid,
+} from '../components/tender/EvaluateItemDialog';
+import { daysUntil, parseDeadline } from '../components/tender/tenderDates';
 import type { TenderRow } from './TendersView';
+
+/** Mock supplier bids for the per-item evaluation modal — five bids per
+ *  item, mirroring the Figma sample data. */
+const MOCK_BIDS: SupplierBid[] = [
+  { supplier: "Chloe's Consumables", manufacturer: 'Medica Pacifica - New Zealand', unitType: 'Cap', packSize: 90, packs: 5, totalUnits: 450, deliveryWeeks: 12, deliveryMode: 'ship', expiry: '05/13/2026', pricePerPack: 'FJD 25.00', priceLocal: 'NZD 18.50', status: 'Accept' },
+  { supplier: "Chloe's Consumables", manufacturer: 'Medica Pacifica - New Zealand', unitType: 'Cap', packSize: 90, packs: 5, totalUnits: 450, deliveryWeeks: 2, deliveryMode: 'truck', expiry: '06/03/2026', pricePerPack: 'FJD 35.00', priceLocal: 'FJD 21.50', status: 'Preferred' },
+  { supplier: "Luna's Apothecary Supplies", manufacturer: 'Biological Therapies, Australia', unitType: 'Pill', packSize: 50, packs: 5, totalUnits: 250, deliveryWeeks: 20, deliveryMode: 'ship', expiry: '05/31/2026', pricePerPack: 'FJD 24.00', priceLocal: 'SGD 14.00', status: 'Disqualify', hasComment: true },
+  { supplier: "Lorenzo's POC Solutions", manufacturer: 'Abbott GmbH & Co.KG, Germany', unitType: 'Cap', packSize: 90, packs: 5, totalUnits: 450, deliveryWeeks: 8, deliveryMode: 'ship', expiry: '06/03/2026', pricePerPack: 'FJD 25.00', status: 'Accept' },
+  { supplier: 'Sams Medical Department', manufacturer: 'Abbott, USA', unitType: 'Cap', packSize: 90, packs: 5, totalUnits: 450, deliveryWeeks: 14, deliveryMode: 'ship', expiry: '06/27/2026', pricePerPack: 'FJD 25.00', priceLocal: 'AUD 16.50', status: 'Accept' },
+];
 
 const ThinCheckboxIcon = () => (
   <SvgIcon sx={{ fontSize: 18 }}>
@@ -78,10 +94,29 @@ export default function TenderEvaluateView({ navItems, onNavigate, tender, logoU
   const showEmpty = stepStatus === 'incomplete';
   const theme = useTheme();
   const primaryColor = theme.palette.primary.main;
+  // Evaluation unlocks once the bid deadline has passed — at that point
+  // suppliers can no longer submit bids, so what's in is what's evaluable.
+  const deadlineDate = parseDeadline(tender.deadline);
+  const daysRemaining = deadlineDate ? daysUntil(deadlineDate) : null;
+  const evaluationLocked = daysRemaining !== null && daysRemaining > 0;
   const [searchQuery, setSearchQuery] = useState('');
   const [checkedRows, setCheckedRows] = useState<Set<number>>(new Set());
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  // Per-item evaluation modal — 1-based row index into the unfiltered
+  // MOCK_EVAL_ITEMS list so prev/next walks the full set in original order.
+  const [activeItemIndex, setActiveItemIndex] = useState<number | null>(null);
+  const activeItem = activeItemIndex !== null ? MOCK_EVAL_ITEMS[activeItemIndex - 1] : null;
+  const activeItemSummary: EvaluateItemSummary | null = activeItem
+    ? {
+        itemCode: activeItem.itemCode,
+        itemName: activeItem.itemName,
+        unitType: activeItem.suppliers || 'Cap',
+        packSize: activeItem.packSize,
+        numberOfPacks: activeItem.numberOfPacks,
+        totalUnits: activeItem.totalQuantity,
+      }
+    : null;
 
   const handleSort = (key: string) => {
     if (sortKey === key) {
@@ -183,7 +218,7 @@ export default function TenderEvaluateView({ navItems, onNavigate, tender, logoU
               flexWrap: { xs: 'wrap', sm: 'nowrap' },
             }}
           >
-            <HugeiconsIcon icon={NoteIcon} size={24} color="#3E7BFA" />
+            <HugeiconsIcon icon={CheckListIcon} size={24} color="#3E7BFA" />
             <Typography sx={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'text.primary', whiteSpace: 'nowrap' }}>
               {t('tenderEvaluate.bidsReceived', { received: 14, total: 20 })}
             </Typography>
@@ -200,26 +235,47 @@ export default function TenderEvaluateView({ navItems, onNavigate, tender, logoU
               <Box sx={{ width: `${(14 / 20) * 100}%`, height: '100%', bgcolor: '#3E7BFA', borderRadius: 3 }} />
             </Box>
           </Box>
-          <Button
-            variant="contained"
-            sx={{
-              bgcolor: '#3E7BFA',
-              color: '#FFFFFF',
-              fontFamily: 'Inter, sans-serif',
-              fontSize: 13,
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-              borderRadius: '24px',
-              px: 3,
-              py: 0.75,
-              width: { xs: '100%', sm: 'auto' },
-              boxShadow: 'none',
-              '&:hover': { bgcolor: '#3E7BFA', filter: 'brightness(1.1)', boxShadow: '0px 2px 8px rgba(0,0,0,0.15)' },
-            }}
-          >
-            {t('tenderEvaluate.evaluateBids')}
-          </Button>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: { xs: 'wrap', sm: 'nowrap' } }}>
+            {daysRemaining !== null && (
+              <Typography
+                sx={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 13,
+                  color: 'text.secondary',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {evaluationLocked
+                  ? t('tenderEvaluate.bidDeadlineIs', { date: tender.deadline })
+                  : t('tenderEvaluate.biddingClosed', { date: tender.deadline })}
+              </Typography>
+            )}
+            <Button
+              variant="contained"
+              disabled={evaluationLocked}
+              sx={{
+                bgcolor: '#3E7BFA',
+                color: '#FFFFFF',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 13,
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                borderRadius: '24px',
+                px: 3,
+                py: 0.75,
+                width: { xs: '100%', sm: 'auto' },
+                boxShadow: 'none',
+                '&:hover': { bgcolor: '#3E7BFA', filter: 'brightness(1.1)', boxShadow: '0px 2px 8px rgba(0,0,0,0.15)' },
+                '&.Mui-disabled': {
+                  bgcolor: 'action.disabledBackground',
+                  color: 'action.disabled',
+                },
+              }}
+            >
+              {t('tenderEvaluate.evaluateBids')}
+            </Button>
+          </Box>
         </Box>
 
         {/* Toolbar */}
@@ -321,8 +377,16 @@ export default function TenderEvaluateView({ navItems, onNavigate, tender, logoU
               </TableHead>
               <TableBody>
                 {filteredItems.map((item, idx) => (
-                  <TableRow key={idx} hover sx={{ cursor: 'pointer' }}>
-                    <TableCell padding="checkbox" sx={{ py: '10px' }}>
+                  <TableRow
+                    key={idx}
+                    hover
+                    onClick={() => {
+                      const fullIdx = MOCK_EVAL_ITEMS.indexOf(item);
+                      setActiveItemIndex(fullIdx >= 0 ? fullIdx + 1 : 1);
+                    }}
+                    sx={{ cursor: 'pointer' }}
+                  >
+                    <TableCell padding="checkbox" sx={{ py: '10px' }} onClick={(e) => e.stopPropagation()}>
                       <Checkbox
                         size="small"
                         icon={<ThinCheckboxIcon />}
@@ -383,6 +447,22 @@ export default function TenderEvaluateView({ navItems, onNavigate, tender, logoU
       </Box>
         </>
       )}
+
+      <EvaluateItemDialog
+        open={activeItemIndex !== null}
+        tenderTitle={`${tender.serial} ${tender.description}`}
+        index={activeItemIndex ?? 0}
+        total={MOCK_EVAL_ITEMS.length}
+        item={activeItemSummary}
+        bids={MOCK_BIDS}
+        onClose={() => setActiveItemIndex(null)}
+        onPrev={() => setActiveItemIndex((i) => (i && i > 1 ? i - 1 : i))}
+        onNext={() =>
+          setActiveItemIndex((i) =>
+            i && i < MOCK_EVAL_ITEMS.length ? i + 1 : i
+          )
+        }
+      />
     </NavLayout>
   );
 }

@@ -5,6 +5,7 @@ import {
   HelpCircleIcon,
   MoreHorizontalIcon,
   NoteIcon,
+  Package03Icon,
   PrinterIcon,
   Search01Icon,
 } from '@hugeicons/core-free-icons';
@@ -52,6 +53,14 @@ interface TenderItemsViewProps {
 
 export default function TenderItemsView({ navItems, onNavigate, tender, logoUrl }: TenderItemsViewProps) {
   const { t } = useTranslation();
+  // Sourcing requires at least one item — gating by the items list is the
+  // step-specific rule for this view, distinct from the deadline gating
+  // used on Source/Evaluate banners.
+  const sourceLocked = TENDER_ITEMS.length === 0;
+  // Once the tender has moved past Planning the items list is locked: the
+  // tender has been advertised to suppliers and any further item edits
+  // would invalidate the bids in flight.
+  const isAdvertised = tender.status !== 'Planning';
   const stepStatus = getTenderSteps(tender.status).find((s) => s.key === 'items')?.status;
   const showEmpty = stepStatus === 'incomplete';
   const theme = useTheme();
@@ -116,6 +125,9 @@ export default function TenderItemsView({ navItems, onNavigate, tender, logoUrl 
           label: t('tenderItems.addItems'),
           icon: <HugeiconsIcon icon={AddCircleIcon} size={18} color={primaryColor} />,
           onClick: () => {},
+          // Items are locked once the tender is advertised; downstream
+          // suppliers are bidding against the current list.
+          disabled: isAdvertised,
         },
         comboActions: [
           { icon: <HugeiconsIcon icon={PrinterIcon} size={20} />, label: t('common.print'), onClick: () => {} },
@@ -137,6 +149,81 @@ export default function TenderItemsView({ navItems, onNavigate, tender, logoUrl 
         />
       ) : (
         <>
+      {/* Info Banner — items count + deadline progress, with the next-step
+          action gated until the deadline passes. */}
+      <Box
+        sx={{
+          bgcolor: 'background.paper',
+          borderRadius: '10px',
+          px: { xs: 2, sm: 3 },
+          py: 2,
+          mt: 2,
+          mb: '20px',
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          alignItems: { xs: 'stretch', sm: 'center' },
+          justifyContent: 'space-between',
+          gap: { xs: 1.5, sm: 0 },
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            minWidth: 0,
+            flexWrap: { xs: 'wrap', sm: 'nowrap' },
+          }}
+        >
+          <HugeiconsIcon icon={Package03Icon} size={24} color="#3E7BFA" />
+          <Typography sx={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'text.primary', whiteSpace: 'nowrap' }}>
+            {t('tenderItems.itemsInTender', { count: TENDER_ITEMS.length })}
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: { xs: 'wrap', sm: 'nowrap' } }}>
+          {(isAdvertised || sourceLocked) && (
+            <Typography
+              sx={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 13,
+                color: 'text.secondary',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {isAdvertised
+                ? t('tenderItems.tenderAdvertised')
+                : t('tenderItems.addItemsFirst')}
+            </Typography>
+          )}
+          <Button
+            variant="contained"
+            disabled={sourceLocked || isAdvertised}
+            onClick={() => onNavigate('/tenders/source')}
+            sx={{
+              bgcolor: '#3E7BFA',
+              color: '#FFFFFF',
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 13,
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              borderRadius: '24px',
+              px: 3,
+              py: 0.75,
+              width: { xs: '100%', sm: 'auto' },
+              boxShadow: 'none',
+              '&:hover': { bgcolor: '#3E7BFA', filter: 'brightness(1.1)', boxShadow: '0px 2px 8px rgba(0,0,0,0.15)' },
+              '&.Mui-disabled': {
+                bgcolor: 'action.disabledBackground',
+                color: 'action.disabled',
+              },
+            }}
+          >
+            {t('tenderItems.sourceSuppliers')}
+          </Button>
+        </Box>
+      </Box>
+
       {/* Toolbar */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mt: 2 }}>
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
@@ -299,34 +386,6 @@ export default function TenderItemsView({ navItems, onNavigate, tender, logoUrl 
         )}
       </Box>
 
-      {/* Next Button */}
-      <Box sx={{ position: 'fixed', bottom: 96, left: 220, right: 0, display: 'flex', justifyContent: 'center', zIndex: 5 }}>
-        <Button
-          variant="contained"
-          onClick={() => onNavigate('/tenders/detail')}
-          sx={{
-            bgcolor: primaryColor,
-            color: '#FFFFFF',
-            fontFamily: 'Inter, sans-serif',
-            fontSize: 15,
-            fontWeight: 500,
-            textTransform: 'none',
-            borderRadius: '24px',
-            px: 5,
-            py: 1,
-            boxShadow: '0px 1px 5px rgba(0,0,0,0.12), 0px 2px 2px rgba(0,0,0,0.14), 0px 3px 1px -2px rgba(0,0,0,0.2)',
-            transition: 'all 0.2s ease',
-            '&:hover': {
-              bgcolor: primaryColor,
-              filter: 'brightness(1.15)',
-              boxShadow: '0px 4px 12px rgba(0,0,0,0.25)',
-              transform: 'translateY(-1px)',
-            },
-          }}
-        >
-          {t('tenderItems.next')}
-        </Button>
-      </Box>
         </>
       )}
     </NavLayout>

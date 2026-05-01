@@ -110,6 +110,7 @@ export default function ViewHeader({
         {primaryAction && (
           <Button
             onClick={primaryAction.onClick}
+            disabled={primaryAction.disabled}
             variant="outlined"
             size="small"
             startIcon={primaryAction.icon}

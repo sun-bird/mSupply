@@ -5,6 +5,7 @@ import {
   EyeIcon,
   HelpCircleIcon,
   Mail01Icon,
+  CrowdfundingIcon,
   NoteIcon,
   PrinterIcon,
   Search01Icon,
@@ -45,6 +46,7 @@ import StatusController from '../components/tender/StatusController';
 import SupplierSidebar from '../components/tender/SupplierSidebar';
 import type { Supplier } from '../components/tender/SupplierSidebar';
 import { TENDER_SUPPLIERS } from '../components/tender/tenderSuppliers';
+import { daysUntil, parseDeadline } from '../components/tender/tenderDates';
 import type { TenderRow } from './TendersView';
 
 function perfColor(value: number): string {
@@ -60,32 +62,36 @@ interface TenderSourceViewProps {
   logoUrl?: string;
 }
 
-/** Parse a `D/M/YYYY` date string (matches the format on TenderRow.deadline)
- *  into a Date in local time, or `null` if the input is malformed. */
-function parseDeadline(value: string): Date | null {
-  const parts = value.split('/').map((p) => parseInt(p, 10));
-  if (parts.length !== 3 || parts.some((n) => Number.isNaN(n))) return null;
-  const [day, month, year] = parts;
-  return new Date(year, month - 1, day);
-}
-
-/** Whole-day difference between `deadline` and today. Positive = future. */
-function daysUntil(deadline: Date): number {
-  const MS_PER_DAY = 86_400_000;
-  const today = new Date();
-  const a = Date.UTC(deadline.getFullYear(), deadline.getMonth(), deadline.getDate());
-  const b = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
-  return Math.round((a - b) / MS_PER_DAY);
-}
-
 export default function TenderSourceView({ navItems, onNavigate, tender, logoUrl }: TenderSourceViewProps) {
   const { t } = useTranslation();
   const stepStatus = getTenderSteps(tender.status).find((s) => s.key === 'source')?.status;
   const showEmpty = stepStatus === 'incomplete';
   const theme = useTheme();
   const primaryColor = theme.palette.primary.main;
+  const advertisedDate = parseDeadline(tender.advertised);
   const deadlineDate = parseDeadline(tender.deadline);
   const daysRemaining = deadlineDate ? daysUntil(deadlineDate) : null;
+  // Progress through the tender window: 0% at advertised, 100% at deadline.
+  // Past the deadline clamps to 100%.
+  const deadlineProgress =
+    advertisedDate && deadlineDate
+      ? (() => {
+          const totalMs = deadlineDate.getTime() - advertisedDate.getTime();
+          const elapsedMs = Date.now() - advertisedDate.getTime();
+          if (totalMs <= 0) return 100;
+          return Math.max(0, Math.min(100, (elapsedMs / totalMs) * 100));
+        })()
+      : null;
+  // Match the existing text-color logic so the bar shifts colour as the
+  // deadline approaches.
+  const deadlineFillColor =
+    daysRemaining === null
+      ? '#3E7BFA'
+      : daysRemaining < 0
+        ? theme.palette.error.main
+        : daysRemaining <= 7
+          ? theme.palette.warning.main
+          : '#3E7BFA';
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
   const [checkedCodes, setCheckedCodes] = useState<Set<string>>(new Set());
@@ -218,7 +224,7 @@ export default function TenderSourceView({ navItems, onNavigate, tender, logoUrl
                 flexWrap: { xs: 'wrap', sm: 'nowrap' },
               }}
             >
-              <HugeiconsIcon icon={NoteIcon} size={24} color="#3E7BFA" />
+              <HugeiconsIcon icon={CrowdfundingIcon} size={24} color="#3E7BFA" />
               <Typography sx={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'text.primary', whiteSpace: 'nowrap' }}>
                 {t('tenderSource.suppliersResponded', {
                   responded: TENDER_SUPPLIERS.filter((s) => s.dateResponded).length,
@@ -248,71 +254,83 @@ export default function TenderSourceView({ navItems, onNavigate, tender, logoUrl
                   }}
                 />
               </Box>
-              {daysRemaining !== null && (
-                <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.75, whiteSpace: 'nowrap' }}>
-                  <Typography
-                    component="span"
+              {deadlineProgress !== null && (
+                <Box
+                  // `title` shows the textual breakdown the bar replaced
+                  // (deadline date + relative days) on hover, so the info
+                  // isn't lost.
+                  title={
+                    daysRemaining === null
+                      ? tender.deadline
+                      : `${tender.deadline} · ${
+                          daysRemaining > 0
+                            ? t('tenderSource.daysToDeadline', { count: daysRemaining })
+                            : daysRemaining === 0
+                              ? t('tenderSource.deadlineToday')
+                              : t('tenderSource.deadlineOverdue', { count: Math.abs(daysRemaining) })
+                        }`
+                  }
+                  sx={{
+                    width: { xs: '100%', sm: 120 },
+                    height: 6,
+                    bgcolor: 'action.hover',
+                    borderRadius: 3,
+                    overflow: 'hidden',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Box
                     sx={{
-                      fontFamily: 'Inter, sans-serif',
-                      fontSize: 13,
-                      color: 'text.secondary',
+                      width: `${deadlineProgress}%`,
+                      height: '100%',
+                      bgcolor: deadlineFillColor,
+                      borderRadius: 3,
+                      transition: 'width 0.25s ease, background-color 0.25s ease',
                     }}
-                  >
-                    {tender.deadline}
-                  </Typography>
-                  <Typography
-                    component="span"
-                    sx={{
-                      fontFamily: 'Inter, sans-serif',
-                      fontSize: 13,
-                      color: 'text.disabled',
-                    }}
-                  >
-                    ·
-                  </Typography>
-                  <Typography
-                    component="span"
-                    sx={{
-                      fontFamily: 'Inter, sans-serif',
-                      fontSize: 13,
-                      fontWeight: 500,
-                      color: daysRemaining < 0
-                        ? 'error.main'
-                        : daysRemaining <= 7
-                          ? 'warning.main'
-                          : 'text.secondary',
-                    }}
-                  >
-                    {daysRemaining > 0
-                      ? t('tenderSource.daysToDeadline', { count: daysRemaining })
-                      : daysRemaining === 0
-                        ? t('tenderSource.deadlineToday')
-                        : t('tenderSource.deadlineOverdue', { count: Math.abs(daysRemaining) })}
-                  </Typography>
+                  />
                 </Box>
               )}
             </Box>
-            <Button
-              variant="contained"
-              onClick={() => onNavigate('/tenders/evaluate')}
-              sx={{
-                bgcolor: '#3E7BFA',
-                color: '#FFFFFF',
-                fontFamily: 'Inter, sans-serif',
-                fontSize: 13,
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                borderRadius: '24px',
-                px: 3,
-                py: 0.75,
-                width: { xs: '100%', sm: 'auto' },
-                boxShadow: 'none',
-                '&:hover': { bgcolor: '#3E7BFA', filter: 'brightness(1.1)', boxShadow: '0px 2px 8px rgba(0,0,0,0.15)' },
-              }}
-            >
-              {t('tenderSource.evaluateBids')}
-            </Button>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: { xs: 'wrap', sm: 'nowrap' } }}>
+              {daysRemaining !== null && daysRemaining > 0 && (
+                <Typography
+                  sx={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 13,
+                    color: 'text.secondary',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {t('tenderSource.daysToDeadlineDate', { count: daysRemaining, date: tender.deadline })}
+                </Typography>
+              )}
+              <Button
+                variant="contained"
+                onClick={() => onNavigate('/tenders/evaluate')}
+                disabled={daysRemaining !== null && daysRemaining > 0}
+                sx={{
+                  bgcolor: '#3E7BFA',
+                  color: '#FFFFFF',
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  borderRadius: '24px',
+                  px: 3,
+                  py: 0.75,
+                  width: { xs: '100%', sm: 'auto' },
+                  boxShadow: 'none',
+                  '&:hover': { bgcolor: '#3E7BFA', filter: 'brightness(1.1)', boxShadow: '0px 2px 8px rgba(0,0,0,0.15)' },
+                  '&.Mui-disabled': {
+                    bgcolor: 'action.disabledBackground',
+                    color: 'action.disabled',
+                  },
+                }}
+              >
+                {t('tenderSource.evaluateBids')}
+              </Button>
+            </Box>
           </Box>
 
           {/* Toolbar */}

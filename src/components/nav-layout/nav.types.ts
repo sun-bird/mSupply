@@ -18,6 +18,8 @@ export interface PrimaryAction {
   label: string;
   onClick: () => void;
   icon?: ReactNode;
+  /** When true the action button renders disabled and ignores clicks. */
+  disabled?: boolean;
 }
 
 export interface ComboAction {

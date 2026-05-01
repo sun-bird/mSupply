@@ -24,6 +24,7 @@ import EmptyStateView from '../components/EmptyStateView';
 import PrimaryCtaButton from '../components/PrimaryCtaButton';
 import { getTenderSteps } from '../components/tender/tender.types';
 import type { NavItem } from '../components/nav-layout';
+import DateInput from '../components/tender/DateInput';
 import DocumentDropZone from '../components/tender/DocumentDropZone';
 import DocumentList from '../components/tender/DocumentList';
 import type { TenderDocument } from '../components/tender/DocumentList';
@@ -86,9 +87,21 @@ const inputSx = {
   height: 36,
 };
 
+/** Variant of {@link inputSx} for `<input type="date">` that mutes the
+ *  native "dd/mm/yyyy" placeholder text when no value is selected. */
+const dateInputSx = (value: string) => ({
+  ...inputSx,
+  color: value ? 'text.primary' : 'text.disabled',
+});
+
 const selectSx = {
   ...inputSx,
-  '& .MuiSelect-select': { py: 0.75, px: 1.5 },
+  // The inner `.MuiSelect-select` div would otherwise add its own horizontal
+  // padding on top of the wrapper's `inputSx.px`, pushing dropdown values 12px
+  // further right than text/date inputs. Zero its left padding so all three
+  // input types share the same left edge; right padding stays at MUI's
+  // default (it reserves room for the chevron).
+  '& .MuiSelect-select': { py: 0.75, paddingLeft: 0 },
   '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
   '&:hover .MuiOutlinedInput-notchedOutline': { border: 'none' },
   '&.Mui-focused .MuiOutlinedInput-notchedOutline': { border: '2px solid #3E7BFA' },
@@ -122,9 +135,13 @@ interface FormRowProps {
 
 function FormRow({ label, children, fullWidth }: FormRowProps) {
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: fullWidth ? '1 1 100%' : '1 1 45%' }}>
+    // `minWidth: 0` overrides the default `min-width: auto` on flex items so
+    // the FormRow can actually shrink to its 45% basis. Without it, fields
+    // with wider intrinsic min-content (e.g. the MUI X DatePicker) prevent
+    // two FormRows from sitting side-by-side.
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, minWidth: 0, flex: fullWidth ? '1 1 100%' : '1 1 45%' }}>
       <Typography sx={labelSx}>{label}</Typography>
-      <Box sx={{ flex: 1 }}>{children}</Box>
+      <Box sx={{ flex: 1, minWidth: 0 }}>{children}</Box>
     </Box>
   );
 }
@@ -146,6 +163,12 @@ export default function TenderPlanView({ navItems, onNavigate, tender, onTenderC
   /** Update one date field and bubble the change up so other views see it. */
   const updateDate = (field: 'advertised' | 'deadline' | 'expires', iso: string) => {
     onTenderChange?.({ ...tender, [field]: fromIsoDate(iso) });
+  };
+
+  /** Generic field updater for the optional Tender Details fields
+   *  (incoterm/workflow/category/tenderPeriod/notes). */
+  const updateField = <K extends keyof TenderRow>(field: K, value: TenderRow[K]) => {
+    onTenderChange?.({ ...tender, [field]: value });
   };
 
   const handleAddInternalDocs = (files: File[]) => {
@@ -212,14 +235,26 @@ export default function TenderPlanView({ navItems, onNavigate, tender, onTenderC
               px: 3,
               py: 2,
               cursor: 'pointer',
-              '&:hover': { bgcolor: 'action.hover' },
+              // Hovering anywhere on the header previews the chevron's own
+              // hover state so the whole row reads as one click target.
+              '&:hover .MuiIconButton-root': {
+                color: '#3E7BFA',
+                bgcolor: 'rgba(62,123,250,0.08)',
+              },
             }}
           >
             <HugeiconsIcon icon={InformationCircleIcon} size={20} color={primaryColor} />
             <Typography sx={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: 16, color: 'text.primary', flex: 1 }}>
               {t('tenderPlan.tenderDetails')}
             </Typography>
-            <IconButton size="small" sx={{ transform: detailsOpen ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.2s' }}>
+            <IconButton
+              size="small"
+              sx={{
+                transform: detailsOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
+                transition: 'transform 0.2s, color 0.15s, background-color 0.15s',
+                '&:hover': { color: '#3E7BFA', bgcolor: 'rgba(62,123,250,0.08)' },
+              }}
+            >
               <HugeiconsIcon icon={ArrowDown01Icon} size={18} />
             </IconButton>
           </Box>
@@ -235,10 +270,22 @@ export default function TenderPlanView({ navItems, onNavigate, tender, onTenderC
 
               {/* Row 2: Reference + Incoterm */}
               <FormRow label={t('tenderPlan.reference')}>
-                <InputBase value={tender.reference} readOnly sx={inputSx} fullWidth />
+                <InputBase
+                  value={tender.reference}
+                  onChange={(e) => updateField('reference', e.target.value)}
+                  sx={inputSx}
+                  fullWidth
+                />
               </FormRow>
               <FormRow label={t('tenderPlan.incoterm')}>
-                <Select size="small" displayEmpty value="" fullWidth sx={selectSx} MenuProps={selectMenuProps}
+                <Select
+                  size="small"
+                  displayEmpty
+                  value={tender.incoterm ?? ''}
+                  onChange={(e) => updateField('incoterm', e.target.value)}
+                  fullWidth
+                  sx={selectSx}
+                  MenuProps={selectMenuProps}
                   IconComponent={() => (
                     <Box sx={{ pr: 0, display: 'flex', alignItems: 'center' }}>
                       <HugeiconsIcon icon={ArrowDown01Icon} size={14} color="currentColor" />
@@ -256,7 +303,12 @@ export default function TenderPlanView({ navItems, onNavigate, tender, onTenderC
 
               {/* Row 3: Description */}
               <FormRow label={t('tenderPlan.description')} fullWidth>
-                <InputBase value={tender.description} readOnly sx={inputSx} fullWidth />
+                <InputBase
+                  value={tender.description}
+                  onChange={(e) => updateField('description', e.target.value)}
+                  sx={inputSx}
+                  fullWidth
+                />
               </FormRow>
 
               {/* Row 4: Process + Type */}
@@ -281,14 +333,21 @@ export default function TenderPlanView({ navItems, onNavigate, tender, onTenderC
                   )}
                 >
                   <MenuItem value="Supplies">Supplies</MenuItem>
-                  <MenuItem value="Services">Services</MenuItem>
-                  <MenuItem value="Works">Works</MenuItem>
+                  <MenuItem value="Consumables">Consumables</MenuItem>
+                  <MenuItem value="Equipment">Equipment</MenuItem>
                 </Select>
               </FormRow>
 
               {/* Row 5: Workflow + Category */}
               <FormRow label={t('tenderPlan.workflow')}>
-                <Select size="small" displayEmpty value="" fullWidth sx={selectSx} MenuProps={selectMenuProps}
+                <Select
+                  size="small"
+                  displayEmpty
+                  value={tender.workflow ?? 'Standard'}
+                  onChange={(e) => updateField('workflow', e.target.value)}
+                  fullWidth
+                  sx={selectSx}
+                  MenuProps={selectMenuProps}
                   IconComponent={() => (
                     <Box sx={{ pr: 0, display: 'flex', alignItems: 'center' }}>
                       <HugeiconsIcon icon={ArrowDown01Icon} size={14} color="currentColor" />
@@ -299,36 +358,44 @@ export default function TenderPlanView({ navItems, onNavigate, tender, onTenderC
                     <em></em>
                   </MenuItem>
                   <MenuItem value="Standard">Standard</MenuItem>
-                  <MenuItem value="Express">Express</MenuItem>
+                  <MenuItem value="Urgent">Urgent</MenuItem>
                 </Select>
               </FormRow>
               <FormRow label={t('tenderPlan.category')}>
-                <InputBase placeholder="" sx={inputSx} fullWidth />
-              </FormRow>
-
-              {/* Row 6: Advertise Date + Deadline */}
-              <FormRow label={t('tenderPlan.advertiseDate')}>
                 <InputBase
-                  type="date"
-                  value={toIsoDate(tender.advertised)}
-                  onChange={(e) => updateDate('advertised', e.target.value)}
+                  value={tender.category ?? ''}
+                  onChange={(e) => updateField('category', e.target.value)}
                   sx={inputSx}
                   fullWidth
                 />
               </FormRow>
+
+              {/* Row 6: Advertise Date + Deadline */}
+              <FormRow label={t('tenderPlan.advertiseDate')}>
+                <DateInput
+                  value={toIsoDate(tender.advertised)}
+                  onChange={(iso) => updateDate('advertised', iso)}
+                  sx={dateInputSx(toIsoDate(tender.advertised))}
+                />
+              </FormRow>
               <FormRow label={t('tenderPlan.deadline')}>
-                <InputBase
-                  type="date"
+                <DateInput
                   value={toIsoDate(tender.deadline)}
-                  onChange={(e) => updateDate('deadline', e.target.value)}
-                  sx={inputSx}
-                  fullWidth
+                  onChange={(iso) => updateDate('deadline', iso)}
+                  sx={dateInputSx(toIsoDate(tender.deadline))}
                 />
               </FormRow>
 
               {/* Row 7: Tender Period + Tender Expiry */}
               <FormRow label={t('tenderPlan.tenderPeriod')}>
-                <Select size="small" displayEmpty value="" fullWidth sx={selectSx} MenuProps={selectMenuProps}
+                <Select
+                  size="small"
+                  displayEmpty
+                  value={tender.tenderPeriod ?? '2 years'}
+                  onChange={(e) => updateField('tenderPeriod', e.target.value)}
+                  fullWidth
+                  sx={selectSx}
+                  MenuProps={selectMenuProps}
                   IconComponent={() => (
                     <Box sx={{ pr: 0, display: 'flex', alignItems: 'center' }}>
                       <HugeiconsIcon icon={ArrowDown01Icon} size={14} color="currentColor" />
@@ -341,15 +408,14 @@ export default function TenderPlanView({ navItems, onNavigate, tender, onTenderC
                   <MenuItem value="1 year">1 year</MenuItem>
                   <MenuItem value="2 years">2 years</MenuItem>
                   <MenuItem value="3 years">3 years</MenuItem>
+                  <MenuItem value="Indefinite">Indefinite</MenuItem>
                 </Select>
               </FormRow>
               <FormRow label={t('tenderPlan.tenderExpiry')}>
-                <InputBase
-                  type="date"
+                <DateInput
                   value={toIsoDate(tender.expires)}
-                  onChange={(e) => updateDate('expires', e.target.value)}
-                  sx={inputSx}
-                  fullWidth
+                  onChange={(iso) => updateDate('expires', iso)}
+                  sx={dateInputSx(toIsoDate(tender.expires))}
                 />
               </FormRow>
 
@@ -358,7 +424,8 @@ export default function TenderPlanView({ navItems, onNavigate, tender, onTenderC
                 <InputBase
                   multiline
                   rows={3}
-                  placeholder=""
+                  value={tender.notes ?? ''}
+                  onChange={(e) => updateField('notes', e.target.value)}
                   sx={{
                     ...inputSx,
                     height: 'auto',
@@ -383,14 +450,26 @@ export default function TenderPlanView({ navItems, onNavigate, tender, onTenderC
               px: 3,
               py: 2,
               cursor: 'pointer',
-              '&:hover': { bgcolor: 'action.hover' },
+              // Hovering anywhere on the header previews the chevron's own
+              // hover state so the whole row reads as one click target.
+              '&:hover .MuiIconButton-root': {
+                color: '#3E7BFA',
+                bgcolor: 'rgba(62,123,250,0.08)',
+              },
             }}
           >
             <HugeiconsIcon icon={Task01Icon} size={20} color={primaryColor} />
             <Typography sx={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: 16, color: 'text.primary', flex: 1 }}>
               {t('tenderPlan.internalDocuments')}
             </Typography>
-            <IconButton size="small" sx={{ transform: internalOpen ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.2s' }}>
+            <IconButton
+              size="small"
+              sx={{
+                transform: internalOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
+                transition: 'transform 0.2s, color 0.15s, background-color 0.15s',
+                '&:hover': { color: '#3E7BFA', bgcolor: 'rgba(62,123,250,0.08)' },
+              }}
+            >
               <HugeiconsIcon icon={ArrowDown01Icon} size={18} />
             </IconButton>
           </Box>
@@ -419,14 +498,26 @@ export default function TenderPlanView({ navItems, onNavigate, tender, onTenderC
               px: 3,
               py: 2,
               cursor: 'pointer',
-              '&:hover': { bgcolor: 'action.hover' },
+              // Hovering anywhere on the header previews the chevron's own
+              // hover state so the whole row reads as one click target.
+              '&:hover .MuiIconButton-root': {
+                color: '#3E7BFA',
+                bgcolor: 'rgba(62,123,250,0.08)',
+              },
             }}
           >
             <HugeiconsIcon icon={NoteIcon} size={20} color={primaryColor} />
             <Typography sx={{ fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: 16, color: 'text.primary', flex: 1 }}>
               {t('tenderPlan.procurementDocuments')}
             </Typography>
-            <IconButton size="small" sx={{ transform: procurementOpen ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.2s' }}>
+            <IconButton
+              size="small"
+              sx={{
+                transform: procurementOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
+                transition: 'transform 0.2s, color 0.15s, background-color 0.15s',
+                '&:hover': { color: '#3E7BFA', bgcolor: 'rgba(62,123,250,0.08)' },
+              }}
+            >
               <HugeiconsIcon icon={ArrowDown01Icon} size={18} />
             </IconButton>
           </Box>
