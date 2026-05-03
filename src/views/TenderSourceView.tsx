@@ -6,7 +6,6 @@ import {
   HelpCircleIcon,
   Mail01Icon,
   CrowdfundingIcon,
-  NoteIcon,
   PrinterIcon,
   Search01Icon,
   Upload04Icon,

@@ -2,7 +2,6 @@ import {
   ArrowDown01Icon,
   ArrowLeft01Icon,
   ArrowRight01Icon,
-  Cancel01Icon,
   Comment01Icon,
   DeliveryTruck02Icon,
 } from '@hugeicons/core-free-icons';
@@ -178,7 +177,6 @@ export default function EvaluateItemDialog({
 }: EvaluateItemDialogProps) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const primaryColor = theme.palette.primary.main;
   const statusColors = getStatusColors(theme);
   const [priceBlind, setPriceBlind] = useState(false);
   const [sortKey, setSortKey] = useState<keyof SupplierBid | null>(null);
@@ -910,7 +908,6 @@ export default function EvaluateItemDialog({
               <TableBody>
                 {sortedBids.map((bid, i) => {
                   const status = statusOverrides[i] ?? 'Not Evaluated';
-                  const statusStyle = statusColors[status];
                   const isExpanded = showAllComments || expandedComments.has(i);
                   const hasCommentText = (comments[i] ?? '').trim().length > 0;
                   const isActive = hasCommentText;
@@ -1171,15 +1168,6 @@ const cellSx = {
   whiteSpace: 'nowrap',
 };
 
-const navBtnSx = (primary: string) => ({
-  width: 40,
-  height: 40,
-  bgcolor: 'background.paper',
-  color: 'text.secondary',
-  boxShadow: '0px 0px 2px rgba(40,41,61,0.04), 0px 4px 8px rgba(96,97,112,0.16)',
-  '&:hover': { color: primary, bgcolor: 'background.paper', boxShadow: '0px 2px 8px rgba(0,0,0,0.15)' },
-  '&.Mui-disabled': { color: 'text.disabled', boxShadow: '0px 0px 2px rgba(40,41,61,0.04)' },
-});
 
 // Brand-tinted variant matching the central "NEXT" CTA — alpha bumps
 // up in dark mode so the chevron sits on a visible brand-tinted halo

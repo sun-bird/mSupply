@@ -3,7 +3,6 @@ import {
   EyeIcon,
   HelpCircleIcon,
   CheckListIcon,
-  NoteIcon,
   PrinterIcon,
   Search01Icon,
 } from '@hugeicons/core-free-icons';

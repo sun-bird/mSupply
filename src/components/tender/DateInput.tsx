@@ -56,7 +56,7 @@ export default function DateInput({ value, onChange, sx }: DateInputProps) {
             // shrink to whatever its FormRow column allows — matching the
             // dropdown columns' width again.
             minWidth: 0,
-            '& .MuiPickersOutlinedInput-root': { ...sx, minWidth: 0 },
+            '& .MuiPickersOutlinedInput-root': { ...(sx as Record<string, unknown>), minWidth: 0 },
             '& .MuiPickersOutlinedInput-notchedOutline': { border: 'none' },
             '& .MuiPickersInputBase-sectionsContainer': { padding: 0, minWidth: 0 },
           },
