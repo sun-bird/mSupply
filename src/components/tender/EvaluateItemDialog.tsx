@@ -33,6 +33,7 @@ import {
   TableSortLabel,
   Typography,
   alpha,
+  useMediaQuery,
   useTheme,
 } from '@mui/material';
 import { Fragment, useEffect, useMemo, useState } from 'react';
@@ -178,6 +179,10 @@ export default function EvaluateItemDialog({
   const { t } = useTranslation();
   const theme = useTheme();
   const statusColors = getStatusColors(theme);
+  // Below the sm breakpoint the segmented combo button is too wide for
+  // a table cell; collapse it to the chip+menu dropdown that Variant B
+  // uses so each row only takes one tap-target's worth of space.
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [priceBlind, setPriceBlind] = useState(false);
   const [sortKey, setSortKey] = useState<keyof SupplierBid | null>(null);
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
@@ -262,7 +267,7 @@ export default function EvaluateItemDialog({
       { key: 'expiry' as const, label: t('evaluateItemDialog.expiry'), render: (b: SupplierBid) => b.expiry },
       {
         key: 'pricePerPack' as const,
-        label: 'Price\nper Pack',
+        label: 'Pack\nPrice',
         render: (b: SupplierBid) =>
           // Always render two lines so row height stays consistent
           // regardless of whether the local-currency conversion is shown
@@ -493,7 +498,7 @@ export default function EvaluateItemDialog({
 
       {/* Body — original layout, now exposed under Version B. */}
       {version === 'B' && (
-      <Box sx={{ flex: 1, overflowY: 'auto', px: 5, pb: 3 }}>
+      <Box sx={{ flex: 1, overflowY: 'auto', px: { xs: '10px', sm: 5 }, pb: 3 }}>
         {/* Product Card */}
         <Box
           sx={{
@@ -581,7 +586,7 @@ export default function EvaluateItemDialog({
               <TableRow>
                 {/* Comment column moved to the start of the row so the
                     chat icon sits on the left edge. No header label. */}
-                <TableCell sx={{ borderBottom: '1px solid', borderColor: 'divider', width: 36, px: '10px' }} />
+                <TableCell sx={{ borderBottom: '1px solid', borderColor: 'divider', width: 36, px: 0 }} />
                 {visibleColumns.map((col) => (
                   <TableCell
                     key={col.key}
@@ -650,7 +655,7 @@ export default function EvaluateItemDialog({
                       }),
                     }}
                   >
-                    <TableCell sx={{ ...cellSx, width: 36, px: '10px' }}>
+                    <TableCell sx={{ ...cellSx, width: 36, px: 0 }}>
                       <IconButton
                         size="small"
                         onClick={toggleComment}
@@ -799,7 +804,7 @@ export default function EvaluateItemDialog({
       {/* Body — combo-button variant, now exposed as the default
           Version A. */}
       {version === 'A' && (
-        <Box sx={{ flex: 1, overflowY: 'auto', px: 5, pb: 3 }}>
+        <Box sx={{ flex: 1, overflowY: 'auto', px: { xs: '10px', sm: 5 }, pb: 3 }}>
           {/* Product Card */}
           <Box
             sx={{
@@ -875,7 +880,7 @@ export default function EvaluateItemDialog({
             <Table size="small" sx={{ width: '100%' }}>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ borderBottom: '1px solid', borderColor: 'divider', width: 36, px: '10px' }} />
+                  <TableCell sx={{ borderBottom: '1px solid', borderColor: 'divider', width: 36, px: 0 }} />
                   {visibleColumns.map((col) => (
                     <TableCell
                       key={col.key}
@@ -902,12 +907,26 @@ export default function EvaluateItemDialog({
                       </TableSortLabel>
                     </TableCell>
                   ))}
-                  <TableCell sx={{ borderBottom: '1px solid', borderColor: 'divider' }} />
+                  <TableCell
+                    sx={{
+                      borderBottom: '1px solid',
+                      borderColor: 'divider',
+                      // Pin the status column to the right edge so it
+                      // stays in view while the user scrolls through
+                      // wide bid data.
+                      position: 'sticky',
+                      right: 0,
+                      bgcolor: 'background.default',
+                      textAlign: 'right',
+                      zIndex: 1,
+                    }}
+                  />
                 </TableRow>
               </TableHead>
               <TableBody>
                 {sortedBids.map((bid, i) => {
                   const status = statusOverrides[i] ?? 'Not Evaluated';
+                  const statusStyle = statusColors[status];
                   const isExpanded = showAllComments || expandedComments.has(i);
                   const hasCommentText = (comments[i] ?? '').trim().length > 0;
                   const isActive = hasCommentText;
@@ -928,7 +947,7 @@ export default function EvaluateItemDialog({
                           }),
                         }}
                       >
-                        <TableCell sx={{ ...cellSx, width: 36, px: '10px' }}>
+                        <TableCell sx={{ ...cellSx, width: 36, px: 0 }}>
                           <IconButton
                             size="small"
                             onClick={toggleComment}
@@ -948,77 +967,114 @@ export default function EvaluateItemDialog({
                             {col.render(bid)}
                           </TableCell>
                         ))}
-                        <TableCell sx={{ ...cellSx, py: '8px', pr: 0 }}>
-                          {/* Inline combo (segmented) control replaces
-                              the chip+dropdown — each status gets a
-                              dedicated segment so the selection is one
-                              click away. */}
-                          <ToggleButtonGroup
-                            exclusive
-                            value={status}
-                            onChange={(_, v) => {
-                              if (!v) return;
-                              setStatusOverrides((prev) => {
-                                const next = { ...prev, [i]: v as BidStatus };
-                                // Preferred is exclusive across the
-                                // table — promote any other Preferred
-                                // bid to Accept so only this row keeps
-                                // the Preferred status.
-                                if (v === 'Preferred') {
-                                  Object.keys(next).forEach((k) => {
-                                    const idx = Number(k);
-                                    if (idx !== i && next[idx] === 'Preferred') {
-                                      next[idx] = 'Accept';
-                                    }
-                                  });
-                                }
-                                return next;
-                              });
-                            }}
-                            size="small"
-                            sx={{
-                              borderRadius: '6px',
-                              '& .MuiToggleButton-root': {
+                        <TableCell
+                          sx={{
+                            ...cellSx,
+                            py: '8px',
+                            pr: 0,
+                            position: 'sticky',
+                            right: 0,
+                            bgcolor: 'background.default',
+                            textAlign: 'right',
+                            zIndex: 1,
+                          }}
+                        >
+                          {isMobile ? (
+                            // On narrow viewports the segmented combo is
+                            // too wide for a sticky cell, so fall back to
+                            // the same chip+menu dropdown Variant B uses.
+                            <Chip
+                              label={status}
+                              size="small"
+                              clickable
+                              onClick={(e) => setStatusMenu({ row: i, el: e.currentTarget })}
+                              onDelete={(e: React.SyntheticEvent) =>
+                                setStatusMenu({ row: i, el: e.currentTarget as HTMLElement })
+                              }
+                              deleteIcon={
+                                <HugeiconsIcon icon={ArrowDown01Icon} size={12} color="currentColor" />
+                              }
+                              sx={{
+                                bgcolor: statusStyle.bg,
+                                color: statusStyle.color,
                                 fontFamily: 'Inter, sans-serif',
-                                fontSize: 11,
                                 fontWeight: 500,
-                                textTransform: 'none',
-                                px: 1.25,
-                                py: 0,
+                                fontSize: 12,
                                 height: 24,
-                                lineHeight: 1.2,
-                                borderColor: 'divider',
-                              },
-                            }}
-                          >
-                            {STATUS_OPTIONS.filter((opt) => opt !== 'Not Evaluated').map((opt) => {
-                              const optStyle = statusColors[opt];
-                              return (
-                                <ToggleButton
-                                  key={opt}
-                                  value={opt}
-                                  // Each segment keeps its status color
-                                  // (matching the dropdown chip palette)
-                                  // whether selected or not — selection
-                                  // is shown via the deeper bg fill.
-                                  sx={{
-                                    color: optStyle.color,
-                                    '&:hover': {
-                                      bgcolor: optStyle.bg,
+                                borderRadius: '100px',
+                                px: 1,
+                                '& .MuiChip-label': { px: 1 },
+                                '& .MuiChip-deleteIcon': {
+                                  color: statusStyle.color,
+                                  '&:hover': { color: statusStyle.color, opacity: 0.8 },
+                                },
+                                '&:hover': { bgcolor: statusStyle.bg, filter: 'brightness(0.95)' },
+                              }}
+                            />
+                          ) : (
+                            <ToggleButtonGroup
+                              exclusive
+                              value={status}
+                              onChange={(_, v) => {
+                                if (!v) return;
+                                setStatusOverrides((prev) => {
+                                  const next = { ...prev, [i]: v as BidStatus };
+                                  // Preferred is exclusive across the
+                                  // table — promote any other Preferred
+                                  // bid to Accept so only this row keeps
+                                  // the Preferred status.
+                                  if (v === 'Preferred') {
+                                    Object.keys(next).forEach((k) => {
+                                      const idx = Number(k);
+                                      if (idx !== i && next[idx] === 'Preferred') {
+                                        next[idx] = 'Accept';
+                                      }
+                                    });
+                                  }
+                                  return next;
+                                });
+                              }}
+                              size="small"
+                              sx={{
+                                borderRadius: '6px',
+                                '& .MuiToggleButton-root': {
+                                  fontFamily: 'Inter, sans-serif',
+                                  fontSize: 11,
+                                  fontWeight: 500,
+                                  textTransform: 'none',
+                                  px: 1.25,
+                                  py: 0,
+                                  height: 24,
+                                  lineHeight: 1.2,
+                                  borderColor: 'divider',
+                                },
+                              }}
+                            >
+                              {STATUS_OPTIONS.filter((opt) => opt !== 'Not Evaluated').map((opt) => {
+                                const optStyle = statusColors[opt];
+                                return (
+                                  <ToggleButton
+                                    key={opt}
+                                    value={opt}
+                                    sx={{
                                       color: optStyle.color,
-                                    },
-                                    '&.Mui-selected': {
-                                      bgcolor: optStyle.bg,
-                                      color: optStyle.color,
-                                      '&:hover': { bgcolor: optStyle.bg, filter: 'brightness(0.95)' },
-                                    },
-                                  }}
-                                >
-                                  {opt}
-                                </ToggleButton>
-                              );
-                            })}
-                          </ToggleButtonGroup>
+                                      '&:hover': {
+                                        bgcolor: optStyle.bg,
+                                        color: optStyle.color,
+                                      },
+                                      '&.Mui-selected': {
+                                        bgcolor: optStyle.bg,
+                                        color: optStyle.color,
+                                        '&:hover': { bgcolor: optStyle.bg, filter: 'brightness(0.95)' },
+                                      },
+                                    }}
+                                  >
+                                    {opt}
+                                  </ToggleButton>
+                                );
+                              })}
+                            </ToggleButtonGroup>
+                          )}
                         </TableCell>
                       </TableRow>
                       {isExpanded && (
@@ -1164,7 +1220,8 @@ const cellSx = {
   fontFamily: 'Inter, sans-serif',
   fontSize: 13,
   color: 'text.primary',
-  py: '14px',
+  py: '10px',
+  px: '10px',
   whiteSpace: 'nowrap',
 };
 
