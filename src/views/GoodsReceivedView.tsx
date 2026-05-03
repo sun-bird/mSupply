@@ -65,7 +65,7 @@ export default function GoodsReceivedView({ navItems, onNavigate }: GoodsReceive
           ],
         }}
         footerProps={{
-          storeName: 'Central Tamaki Warehouse',
+          storeName: 'Central HQ',
           userName: 'Mark Prins',
           syncedAt: 'Synced 3 mins ago',
           isOnline: true,

@@ -67,7 +67,7 @@ export default function StockView({ navItems, onNavigate, logoUrl }: StockViewPr
           ],
         }}
         footerProps={{
-          storeName: 'Central Tamaki Warehouse',
+          storeName: 'Central HQ',
           userName: 'Mark Prins',
           syncedAt: 'Synced 3 mins ago',
           isOnline: true,

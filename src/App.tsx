@@ -521,7 +521,7 @@ export default function App() {
           ],
         }}
         footerProps={{
-          storeName: 'Central Tamaki Warehouse',
+          storeName: 'Central HQ',
           userName: 'Mark Prins',
           syncedAt: t('footer.syncedAgo', { time: '3 mins' }),
           isOnline: true,

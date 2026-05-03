@@ -4,6 +4,7 @@ import {
   ArrowRight01Icon,
   Comment01Icon,
   DeliveryTruck02Icon,
+  MoreVerticalIcon,
 } from '@hugeicons/core-free-icons';
 // Note: ArrowLeft01Icon is reused for both the header back button and the
 // footer prev-item navigation arrow.
@@ -204,6 +205,10 @@ export default function EvaluateItemDialog({
   // experimentation. Seeded from initialVersion so callers can route
   // the banner CTA straight into B.
   const [version, setVersion] = useState<'A' | 'B'>(initialVersion);
+  // Anchor element for the mobile overflow menu that hides the A/B
+  // toggle and the All Comments / Price Blind switches behind a
+  // 3-dot icon when the header gets too narrow.
+  const [overflowMenu, setOverflowMenu] = useState<HTMLElement | null>(null);
 
   // Reset the Price Blind toggle and sort state whenever the modal closes
   // so they don't bleed into the next item the user opens.
@@ -370,8 +375,12 @@ export default function EvaluateItemDialog({
           display: 'flex',
           alignItems: 'center',
           gap: 1,
-          px: 5,
-          py: 3,
+          // Mobile: 10px left/right/top, 40px bottom (extra breathing
+          // room below the header before the product card starts).
+          // Desktop reverts to the symmetric 40px / 24px gutter.
+          px: { xs: '10px', sm: 5 },
+          pt: { xs: '10px', sm: 3 },
+          pb: { xs: '40px', sm: 3 },
           flexShrink: 0,
         }}
       >
@@ -391,6 +400,9 @@ export default function EvaluateItemDialog({
             fontSize: 18,
             color: 'text.secondary',
             whiteSpace: 'nowrap',
+            // Hide on mobile so the back arrow + progress bar +
+            // toggles all fit on the narrow viewport.
+            display: { xs: 'none', sm: 'block' },
           }}
         >
           {tenderTitle}
@@ -398,7 +410,7 @@ export default function EvaluateItemDialog({
         {/* Item-completion progress replaces the "Evaluate Item N/M" copy
             in the header — the visual bar conveys both the current item's
             progress and acts as the "how far through" indicator. */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 2, mr: 2, minWidth: 240, flexShrink: 0 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: { xs: 0, sm: 2 }, mr: { xs: 0, sm: 2 }, minWidth: { xs: 'auto', sm: 240 }, flexShrink: 0 }}>
           <LinearProgress
             variant="determinate"
             value={evaluatedRatio * 100}
@@ -406,6 +418,10 @@ export default function EvaluateItemDialog({
               flex: 1,
               height: 6,
               borderRadius: 3,
+              // On mobile we keep just the "N/M Items Evaluated"
+              // counter — the bar itself disappears so the header
+              // can compress.
+              display: { xs: 'none', sm: 'block' },
               bgcolor: alpha(
                 theme.palette.text.primary,
                 theme.palette.mode === 'dark' ? 0.18 : 0.08,
@@ -434,7 +450,8 @@ export default function EvaluateItemDialog({
         </Box>
         {/* A/B-testing toggle — keeps version A (the current layout)
             available alongside an alternate version B so design
-            variations can be compared side-by-side. */}
+            variations can be compared side-by-side. Hidden on mobile;
+            collapsed into the overflow menu below. */}
         <ToggleButtonGroup
           exclusive
           value={version}
@@ -443,6 +460,7 @@ export default function EvaluateItemDialog({
           sx={{
             ml: 'auto',
             mr: 2,
+            display: { xs: 'none', sm: 'inline-flex' },
             '& .MuiToggleButton-root': {
               fontFamily: 'Inter, sans-serif',
               fontSize: 13,
@@ -477,7 +495,7 @@ export default function EvaluateItemDialog({
               {t('evaluateItemDialog.showAllComments')}
             </Typography>
           }
-          sx={{ mr: 2 }}
+          sx={{ mr: 2, display: { xs: 'none', sm: 'inline-flex' } }}
         />
         <FormControlLabel
           control={
@@ -492,9 +510,83 @@ export default function EvaluateItemDialog({
               {t('evaluateItemDialog.priceBlind')}
             </Typography>
           }
-          sx={{ mr: 1 }}
+          sx={{ mr: 1, display: { xs: 'none', sm: 'inline-flex' } }}
         />
+        {/* Mobile-only overflow trigger. Reuses the same controls as
+            above but stacks them in a Menu so the header stays
+            uncluttered on narrow viewports. */}
+        <IconButton
+          onClick={(e) => setOverflowMenu(e.currentTarget)}
+          aria-label="Open header menu"
+          sx={{
+            ml: 'auto',
+            color: 'text.secondary',
+            display: { xs: 'inline-flex', sm: 'none' },
+          }}
+        >
+          <HugeiconsIcon icon={MoreVerticalIcon} size={20} />
+        </IconButton>
       </Box>
+      <Menu
+        open={overflowMenu !== null}
+        anchorEl={overflowMenu}
+        onClose={() => setOverflowMenu(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        slotProps={{ paper: { sx: { borderRadius: '8px', minWidth: 220 } } }}
+      >
+        <MenuItem
+          onClick={(e) => e.stopPropagation()}
+          sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}
+        >
+          <Typography sx={{ fontFamily: 'Inter, sans-serif', fontSize: 14 }}>Variant</Typography>
+          <ToggleButtonGroup
+            exclusive
+            value={version}
+            onChange={(_, v) => v && setVersion(v)}
+            size="small"
+            sx={{
+              '& .MuiToggleButton-root': {
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 13,
+                fontWeight: 600,
+                px: 2,
+                py: 0,
+                height: 24,
+                minWidth: 36,
+                borderColor: 'divider',
+                color: 'text.secondary',
+                '&.Mui-selected': {
+                  bgcolor: 'primary.main',
+                  color: 'primary.contrastText',
+                  '&:hover': { bgcolor: 'primary.main', filter: 'brightness(1.1)' },
+                },
+              },
+            }}
+          >
+            <ToggleButton value="A">A</ToggleButton>
+            <ToggleButton value="B">B</ToggleButton>
+          </ToggleButtonGroup>
+        </MenuItem>
+        <MenuItem
+          onClick={() => setShowAllComments((v) => !v)}
+          sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}
+        >
+          <Typography sx={{ fontFamily: 'Inter, sans-serif', fontSize: 14 }}>
+            {t('evaluateItemDialog.showAllComments')}
+          </Typography>
+          <Switch checked={showAllComments} size="small" />
+        </MenuItem>
+        <MenuItem
+          onClick={() => setPriceBlind((v) => !v)}
+          sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}
+        >
+          <Typography sx={{ fontFamily: 'Inter, sans-serif', fontSize: 14 }}>
+            {t('evaluateItemDialog.priceBlind')}
+          </Typography>
+          <Switch checked={priceBlind} size="small" />
+        </MenuItem>
+      </Menu>
 
       {/* Body — original layout, now exposed under Version B. */}
       {version === 'B' && (
@@ -503,9 +595,12 @@ export default function EvaluateItemDialog({
         <Box
           sx={{
             display: 'flex',
-            alignItems: 'flex-start',
+            // On mobile the title block stacks above the summary
+            // grid; on tablet+ they sit side-by-side.
+            flexDirection: { xs: 'column', sm: 'row' },
+            alignItems: { xs: 'stretch', sm: 'flex-start' },
             justifyContent: 'space-between',
-            gap: 4,
+            gap: { xs: 2, sm: 4 },
             bgcolor: 'action.hover',
             borderRadius: '12px',
             px: 3,
@@ -809,9 +904,12 @@ export default function EvaluateItemDialog({
           <Box
             sx={{
               display: 'flex',
-              alignItems: 'flex-start',
+              // Mobile stacks the title above the summary grid; on
+              // tablet+ they sit side-by-side.
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: { xs: 'stretch', sm: 'flex-start' },
               justifyContent: 'space-between',
-              gap: 4,
+              gap: { xs: 2, sm: 4 },
               bgcolor: 'action.hover',
               borderRadius: '12px',
               px: 3,
@@ -1162,8 +1260,12 @@ export default function EvaluateItemDialog({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          px: 5,
-          py: 3,
+          // Mobile: 10px left/right/bottom, 40px top (mirrors the
+          // header's bottom buffer so the table breathes between
+          // header/footer). Desktop reverts to 40px / 24px gutter.
+          px: { xs: '10px', sm: 5 },
+          pt: { xs: '40px', sm: 3 },
+          pb: { xs: '10px', sm: 3 },
           flexShrink: 0,
         }}
       >

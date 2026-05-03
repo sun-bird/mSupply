@@ -13,7 +13,7 @@ function clipForMobile(value: string, isMobile: boolean): string {
 }
 
 export default function ViewFooter({
-  storeName = 'Central Tamaki Warehouse',
+  storeName = 'Central HQ',
   userName = 'Mark Prins',
   syncedAt = 'Synced 3 mins ago',
   isOnline = true,
