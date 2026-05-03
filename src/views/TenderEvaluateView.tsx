@@ -6,13 +6,13 @@ import {
   NoteIcon,
   PrinterIcon,
   Search01Icon,
-  Tick02Icon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
   Box,
   Button,
   Checkbox,
+  Chip,
   IconButton,
   InputAdornment,
   InputBase,
@@ -25,6 +25,7 @@ import {
   TableRow,
   TableSortLabel,
   Typography,
+  alpha,
   useTheme,
 } from '@mui/material';
 import { useMemo, useState } from 'react';
@@ -73,12 +74,12 @@ interface EvalItem {
 
 const MOCK_EVAL_ITEMS: EvalItem[] = [
   { itemNumber: '101', itemCode: 'M-002523', itemName: 'Acipimox - Cap 250 mg', numberOfPacks: 10, packSize: 50, totalQuantity: 500, suppliers: 'Cap', estimatedDelivery: '', totalCost: '', acceptableSuppliers: '', supplierSelected: true },
-  { itemNumber: '102', itemCode: 'M-003841', itemName: 'Ajmaline - Inj 5 mg per ml, 10 ml ampoule', numberOfPacks: 20, packSize: 25, totalQuantity: 500, suppliers: 'Cap', estimatedDelivery: '', totalCost: '', acceptableSuppliers: '', supplierSelected: true },
+  { itemNumber: '102', itemCode: 'M-003841', itemName: 'Ajmaline - Inj 5 mg per ml, 10 ml ampoule', numberOfPacks: 20, packSize: 25, totalQuantity: 500, suppliers: 'Cap', estimatedDelivery: '', totalCost: '', acceptableSuppliers: '', supplierSelected: false },
   { itemNumber: '103', itemCode: 'M-001297', itemName: 'Atorvastatin - Tab 10 mg', numberOfPacks: 15, packSize: 100, totalQuantity: 1500, suppliers: 'Cap', estimatedDelivery: '', totalCost: '', acceptableSuppliers: '', supplierSelected: true },
-  { itemNumber: '104', itemCode: 'M-004510', itemName: 'Cilazapril - Tab 5 mg', numberOfPacks: 8, packSize: 30, totalQuantity: 240, suppliers: 'Cap', estimatedDelivery: '', totalCost: '', acceptableSuppliers: '', supplierSelected: true },
+  { itemNumber: '104', itemCode: 'M-004510', itemName: 'Cilazapril - Tab 5 mg', numberOfPacks: 8, packSize: 30, totalQuantity: 240, suppliers: 'Cap', estimatedDelivery: '', totalCost: '', acceptableSuppliers: '', supplierSelected: false },
   { itemNumber: '105', itemCode: 'M-002198', itemName: 'Clonidine hydrochloride - Tab 25 mcg', numberOfPacks: 12, packSize: 60, totalQuantity: 720, suppliers: 'Cap', estimatedDelivery: '', totalCost: '', acceptableSuppliers: '', supplierSelected: true },
-  { itemNumber: '106', itemCode: 'M-003672', itemName: 'Isosorbide mononitrate - Tab 20 mg', numberOfPacks: 25, packSize: 28, totalQuantity: 700, suppliers: 'Cap', estimatedDelivery: '', totalCost: '', acceptableSuppliers: '', supplierSelected: true },
-  { itemNumber: '107', itemCode: 'M-005034', itemName: 'Omeprazole powder for oral suspension 2 mg per mL', numberOfPacks: 5, packSize: 90, totalQuantity: 450, suppliers: 'Cap', estimatedDelivery: '', totalCost: '', acceptableSuppliers: '', supplierSelected: true },
+  { itemNumber: '106', itemCode: 'M-003672', itemName: 'Isosorbide mononitrate - Tab 20 mg', numberOfPacks: 25, packSize: 28, totalQuantity: 700, suppliers: 'Cap', estimatedDelivery: '', totalCost: '', acceptableSuppliers: '', supplierSelected: false },
+  { itemNumber: '107', itemCode: 'M-005034', itemName: 'Omeprazole powder for oral suspension 2 mg per mL', numberOfPacks: 5, packSize: 90, totalQuantity: 450, suppliers: 'Cap', estimatedDelivery: '', totalCost: '', acceptableSuppliers: '', supplierSelected: false },
 ];
 
 interface TenderEvaluateViewProps {
@@ -106,6 +107,9 @@ export default function TenderEvaluateView({ navItems, onNavigate, tender, logoU
   // Per-item evaluation modal — 1-based row index into the unfiltered
   // MOCK_EVAL_ITEMS list so prev/next walks the full set in original order.
   const [activeItemIndex, setActiveItemIndex] = useState<number | null>(null);
+  // Which A/B variant to seed the dialog with — row clicks open A,
+  // the banner's "Evaluate Bids" CTA opens directly into B.
+  const [dialogVersion, setDialogVersion] = useState<'A' | 'B'>('A');
   const activeItem = activeItemIndex !== null ? MOCK_EVAL_ITEMS[activeItemIndex - 1] : null;
   const activeItemSummary: EvaluateItemSummary | null = activeItem
     ? {
@@ -159,7 +163,7 @@ export default function TenderEvaluateView({ navItems, onNavigate, tender, logoU
     { key: 'estimatedDelivery', label: t('tenderEvaluate.estimatedDelivery') },
     { key: 'totalCost', label: t('tenderEvaluate.totalCost') },
     { key: 'acceptableSuppliers', label: t('tenderEvaluate.acceptableSuppliers') },
-    { key: 'supplierSelected', label: t('tenderEvaluate.supplierSelected') },
+    { key: 'supplierSelected', label: t('tenderEvaluate.supplierSelected'), minWidth: 110 },
   ];
 
   return (
@@ -253,6 +257,10 @@ export default function TenderEvaluateView({ navItems, onNavigate, tender, logoU
             <Button
               variant="contained"
               disabled={evaluationLocked}
+              onClick={() => {
+                setDialogVersion('A');
+                setActiveItemIndex(1);
+              }}
               sx={{
                 bgcolor: '#3E7BFA',
                 color: '#FFFFFF',
@@ -382,6 +390,7 @@ export default function TenderEvaluateView({ navItems, onNavigate, tender, logoU
                     hover
                     onClick={() => {
                       const fullIdx = MOCK_EVAL_ITEMS.indexOf(item);
+                      setDialogVersion('A');
                       setActiveItemIndex(fullIdx >= 0 ? fullIdx + 1 : 1);
                     }}
                     sx={{ cursor: 'pointer' }}
@@ -425,18 +434,52 @@ export default function TenderEvaluateView({ navItems, onNavigate, tender, logoU
                       {item.suppliers}
                     </TableCell>
                     <TableCell sx={{ fontSize: 12, fontFamily: 'Inter, sans-serif', py: '10px', color: 'text.disabled' }}>
-                      {item.estimatedDelivery || t('tenderEvaluate.notEvaluated')}
+                      {item.estimatedDelivery || 'N/A'}
                     </TableCell>
-                    <TableCell sx={{ fontSize: 12, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: '10px' }}>
-                      {item.totalCost}
+                    <TableCell sx={{ fontSize: 12, fontFamily: 'Inter, sans-serif', py: '10px', color: item.totalCost ? 'text.primary' : 'text.disabled' }}>
+                      {item.totalCost || 'N/A'}
                     </TableCell>
-                    <TableCell sx={{ fontSize: 12, color: 'text.primary', fontFamily: 'Inter, sans-serif', py: '10px' }}>
-                      {item.acceptableSuppliers}
-                    </TableCell>
-                    <TableCell sx={{ py: '10px', textAlign: 'center' }}>
-                      {item.supplierSelected && (
-                        <HugeiconsIcon icon={Tick02Icon} size={18} color={primaryColor} />
-                      )}
+                    {(() => {
+                      // Count of bids on this item with an "acceptable"
+                      // status (Accept or Preferred). Falls back to N/A
+                      // if the item hasn't been evaluated yet.
+                      const acceptCount = item.supplierSelected
+                        ? MOCK_BIDS.filter((b) => b.status === 'Accept' || b.status === 'Preferred').length
+                        : null;
+                      return (
+                        <TableCell sx={{ fontSize: 12, fontFamily: 'Inter, sans-serif', py: '10px', color: acceptCount !== null ? 'text.primary' : 'text.disabled' }}>
+                          {acceptCount !== null ? acceptCount : 'N/A'}
+                        </TableCell>
+                      );
+                    })()}
+                    <TableCell sx={{ py: '10px' }}>
+                      <Chip
+                        label={item.supplierSelected ? 'Evaluated' : 'Not Evaluated'}
+                        size="small"
+                        sx={
+                          item.supplierSelected
+                            ? {
+                                bgcolor: alpha(primaryColor, 0.06),
+                                color: 'primary.main',
+                                fontFamily: 'Inter, sans-serif',
+                                fontWeight: 500,
+                                fontSize: 11,
+                                height: 20,
+                                borderRadius: '100px',
+                                '& .MuiChip-label': { px: 1 },
+                              }
+                            : {
+                                bgcolor: 'rgba(28,28,40,0.06)',
+                                color: '#555770',
+                                fontFamily: 'Inter, sans-serif',
+                                fontWeight: 500,
+                                fontSize: 11,
+                                height: 20,
+                                borderRadius: '100px',
+                                '& .MuiChip-label': { px: 1 },
+                              }
+                        }
+                      />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -455,6 +498,7 @@ export default function TenderEvaluateView({ navItems, onNavigate, tender, logoU
         total={MOCK_EVAL_ITEMS.length}
         item={activeItemSummary}
         bids={MOCK_BIDS}
+        initialVersion={dialogVersion}
         onClose={() => setActiveItemIndex(null)}
         onPrev={() => setActiveItemIndex((i) => (i && i > 1 ? i - 1 : i))}
         onNext={() =>

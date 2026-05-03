@@ -17,10 +17,15 @@ import {
   Dialog,
   FormControlLabel,
   IconButton,
+  InputBase,
+  LinearProgress,
   Menu,
   MenuItem,
   Switch,
+  SvgIcon,
   Table,
+  ToggleButton,
+  ToggleButtonGroup,
   TableBody,
   TableCell,
   TableContainer,
@@ -28,9 +33,10 @@ import {
   TableRow,
   TableSortLabel,
   Typography,
+  alpha,
   useTheme,
 } from '@mui/material';
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 /** Evaluation states for a supplier bid. The user can switch between
@@ -80,18 +86,77 @@ interface EvaluateItemDialogProps {
   onClose: () => void;
   onPrev: () => void;
   onNext: () => void;
+  /** Which A/B-test variant to open in. Defaults to 'A' but the
+   *  banner's "Evaluate Bids" CTA can route directly to 'B'. */
+  initialVersion?: 'A' | 'B';
 }
 
-const STATUS_COLORS: Record<BidStatus, { bg: string; color: string }> = {
-  // Accept reuses the Preferred palette so an "acceptable" decision shares
-  // the same visual weight as the chosen Preferred supplier.
-  Accept: { bg: 'rgba(5,166,96,0.18)', color: '#05813E' },
-  Preferred: { bg: 'rgba(5,166,96,0.18)', color: '#05813E' },
-  Disqualify: { bg: 'rgba(229,53,53,0.15)', color: '#B12626' },
-  'Not Evaluated': { bg: 'rgba(28,28,40,0.06)', color: '#555770' },
+// Status palette factory — derives chip/tick colors from the active
+// theme so the modal works in both light and dark modes. The hue stays
+// constant (green for accept, red for disqualify, neutral for not
+// evaluated) but the lightness flips with the mode.
+const getStatusColors = (
+  theme: import('@mui/material/styles').Theme,
+): Record<BidStatus, { bg: string; color: string }> => {
+  const isDark = theme.palette.mode === 'dark';
+  return {
+    Accept: {
+      bg: isDark ? 'rgba(245,158,11,0.28)' : 'rgba(245,158,11,0.18)',
+      color: isDark ? '#FCD34D' : '#B45309',
+    },
+    Preferred: {
+      bg: isDark ? 'rgba(5,166,96,0.28)' : 'rgba(5,166,96,0.18)',
+      color: isDark ? '#4ED9A0' : '#05813E',
+    },
+    Disqualify: {
+      bg: isDark ? 'rgba(229,53,53,0.28)' : 'rgba(229,53,53,0.15)',
+      color: isDark ? '#FF8F8F' : '#B12626',
+    },
+    'Not Evaluated': {
+      bg: alpha(theme.palette.text.primary, isDark ? 0.12 : 0.06),
+      color: theme.palette.text.secondary,
+    },
+  };
 };
 
 const STATUS_OPTIONS: BidStatus[] = ['Accept', 'Preferred', 'Disqualify', 'Not Evaluated'];
+
+// Rounded outlined-square used for the accept/reject checkboxes — the
+// default MUI checkbox icon has a 2px radius built in, this gives the
+// quick-decision ticks a slightly softer 4px corner that matches the
+// chip/button radii elsewhere in the modal.
+const RoundedCheckboxIcon = () => (
+  <SvgIcon sx={{ fontSize: 18 }}>
+    <rect
+      x="3"
+      y="3"
+      width="18"
+      height="18"
+      rx="4"
+      ry="4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    />
+  </SvgIcon>
+);
+
+// Filled variant used when a checkbox is in the "checked" state — a
+// rounded square solid in the current color, with a thin contrast tick
+// drawn over the top.
+const RoundedCheckboxCheckedIcon = () => (
+  <SvgIcon sx={{ fontSize: 18 }}>
+    <rect x="3" y="3" width="18" height="18" rx="4" ry="4" fill="currentColor" />
+    <path
+      d="M7.5 12.5l3 3 6-6.5"
+      fill="none"
+      stroke="white"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </SvgIcon>
+);
 
 /**
  * Per-item evaluation modal (matches Figma node 6230-30600). Shown as a
@@ -109,10 +174,12 @@ export default function EvaluateItemDialog({
   onClose,
   onPrev,
   onNext,
+  initialVersion = 'A',
 }: EvaluateItemDialogProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const primaryColor = theme.palette.primary.main;
+  const statusColors = getStatusColors(theme);
   const [priceBlind, setPriceBlind] = useState(false);
   const [sortKey, setSortKey] = useState<keyof SupplierBid | null>(null);
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
@@ -121,24 +188,48 @@ export default function EvaluateItemDialog({
   const [statusOverrides, setStatusOverrides] = useState<Record<number, BidStatus>>({});
   // Anchor element + row index for the status dropdown menu.
   const [statusMenu, setStatusMenu] = useState<{ row: number; el: HTMLElement } | null>(null);
+  // Rows whose comment field is currently expanded — keyed by bid index.
+  const [expandedComments, setExpandedComments] = useState<Set<number>>(new Set());
+  // Per-row comment text. Persists across expand/collapse so the user
+  // doesn't lose what they typed if they hide and re-show the field.
+  const [comments, setComments] = useState<Record<number, string>>({});
+  // Master "Show all Comments" toggle in the header — flipping it expands
+  // or collapses every row in one shot.
+  const [showAllComments, setShowAllComments] = useState(false);
+  // A/B-testing toggle in the header — version A shows the current
+  // layout, version B renders a parallel duplicate for side-by-side
+  // experimentation. Seeded from initialVersion so callers can route
+  // the banner CTA straight into B.
+  const [version, setVersion] = useState<'A' | 'B'>(initialVersion);
 
   // Reset the Price Blind toggle and sort state whenever the modal closes
   // so they don't bleed into the next item the user opens.
   useEffect(() => {
-    if (!open) {
+    if (open) {
+      // Snap the variant back to whatever the caller asked for whenever
+      // the dialog reopens, so the "Evaluate Bids" CTA reliably lands
+      // on B even if the user previously toggled to A inside the
+      // modal.
+      setVersion(initialVersion);
+    } else {
       setPriceBlind(false);
       setSortKey(null);
       setSortDir('asc');
       setStatusOverrides({});
       setStatusMenu(null);
+      setExpandedComments(new Set());
+      setComments({});
+      setShowAllComments(false);
     }
-  }, [open]);
+  }, [open, initialVersion]);
 
   // Wipe overrides when the user navigates to a different item so each
   // item starts from the seed status set.
   useEffect(() => {
     setStatusOverrides({});
     setStatusMenu(null);
+    setExpandedComments(new Set());
+    setShowAllComments(false);
   }, [index]);
 
   // Each column declares the bid field it reads from + a renderer so the
@@ -148,10 +239,10 @@ export default function EvaluateItemDialog({
     () => [
       { key: 'supplier' as const, label: t('evaluateItemDialog.supplier'), render: (b: SupplierBid) => b.supplier },
       { key: 'manufacturer' as const, label: t('evaluateItemDialog.manufacturer'), render: (b: SupplierBid) => b.manufacturer },
-      { key: 'unitType' as const, label: t('evaluateItemDialog.unitType'), render: (b: SupplierBid) => b.unitType },
-      { key: 'packSize' as const, label: t('evaluateItemDialog.packSize'), render: (b: SupplierBid) => b.packSize },
+      { key: 'unitType' as const, label: 'Unit\nType', render: (b: SupplierBid) => b.unitType },
+      { key: 'packSize' as const, label: 'Pack\nSize', render: (b: SupplierBid) => b.packSize },
       { key: 'packs' as const, label: t('evaluateItemDialog.packs'), render: (b: SupplierBid) => b.packs },
-      { key: 'totalUnits' as const, label: t('evaluateItemDialog.totalUnits'), render: (b: SupplierBid) => b.totalUnits },
+      { key: 'totalUnits' as const, label: 'Total\nUnits', render: (b: SupplierBid) => b.totalUnits },
       {
         key: 'deliveryWeeks' as const,
         label: t('evaluateItemDialog.delivery'),
@@ -161,7 +252,11 @@ export default function EvaluateItemDialog({
             <HugeiconsIcon
               icon={DeliveryTruck02Icon}
               size={14}
-              color={b.deliveryMode === 'ship' ? '#555770' : '#1C1C28'}
+              color={
+                b.deliveryMode === 'ship'
+                  ? theme.palette.text.secondary
+                  : theme.palette.text.primary
+              }
             />
           </Box>
         ),
@@ -169,23 +264,28 @@ export default function EvaluateItemDialog({
       { key: 'expiry' as const, label: t('evaluateItemDialog.expiry'), render: (b: SupplierBid) => b.expiry },
       {
         key: 'pricePerPack' as const,
-        label: t('evaluateItemDialog.pricePerPack'),
+        label: 'Price\nper Pack',
         render: (b: SupplierBid) =>
-          // Default state hides the actual figures behind asterisks; the
-          // user has to flip the Price Blind toggle on to reveal them.
+          // Always render two lines so row height stays consistent
+          // regardless of whether the local-currency conversion is shown
+          // or the price is masked behind asterisks. The placeholder
+          // non-breaking space reserves the second line's height.
           priceBlind ? (
             <Box>
               <Box>{b.pricePerPack}</Box>
-              {b.priceLocal && (
-                <Box sx={{ color: 'text.secondary', fontSize: 11 }}>({b.priceLocal})</Box>
-              )}
+              <Box sx={{ color: 'text.secondary', fontSize: 11 }}>
+                {b.priceLocal ? `(${b.priceLocal})` : ' '}
+              </Box>
             </Box>
           ) : (
-            <Box sx={{ color: 'text.disabled', letterSpacing: 1 }}>****</Box>
+            <Box>
+              <Box sx={{ color: 'text.disabled', letterSpacing: 1 }}>****</Box>
+              <Box sx={{ color: 'text.secondary', fontSize: 11 }}>{' '}</Box>
+            </Box>
           ),
       },
     ],
-    [t, priceBlind],
+    [t, priceBlind, theme.palette.text.primary, theme.palette.text.secondary],
   );
 
   // Column is always rendered; the Price per Pack cell content is what
@@ -205,6 +305,19 @@ export default function EvaluateItemDialog({
       return String(av).localeCompare(String(bv)) * dir;
     });
   }, [bids, sortKey, sortDir]);
+
+  // Tender-level progress: counts items the user has walked past in this
+  // session, so the bar advances each time they move on to the next item.
+  // The current item itself only counts as evaluated once the user
+  // navigates past it (i.e. clicks Next on the last bid).
+  const evaluatedCount = Math.max(0, index - 1);
+  const evaluatedRatio = total === 0 ? 0 : evaluatedCount / total;
+  // The current item is "complete" once every visible bid has been moved
+  // off the Not Evaluated default — drives the brand-colored "Evaluated"
+  // chip next to the item code.
+  const itemComplete =
+    bids.length > 0 &&
+    bids.every((_b, i) => (statusOverrides[i] ?? 'Not Evaluated') !== 'Not Evaluated');
 
   const toggleSort = (key: keyof SupplierBid) => {
     if (sortKey === key) {
@@ -231,11 +344,17 @@ export default function EvaluateItemDialog({
       fullScreen
       slotProps={{
         paper: {
+          // Strip MUI's auto-applied elevation overlay so the dialog
+          // doesn't render lighter than the rest of the app in dark
+          // mode — Paper at elevation > 0 paints a white-tinted
+          // backgroundImage on top of the bgcolor.
+          elevation: 0,
           sx: {
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
-            bgcolor: 'background.paper',
+            bgcolor: 'background.default',
+            backgroundImage: 'none',
           },
         },
       }}
@@ -268,18 +387,95 @@ export default function EvaluateItemDialog({
             fontWeight: 600,
             fontSize: 18,
             color: 'text.secondary',
-            flex: 1,
-            minWidth: 0,
             whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
           }}
         >
-          {tenderTitle}{' '}
-          <Box component="span" sx={{ fontWeight: 500 }}>
-            {t('evaluateItemDialog.headerItem', { index, total })}
-          </Box>
+          {tenderTitle}
         </Typography>
+        {/* Item-completion progress replaces the "Evaluate Item N/M" copy
+            in the header — the visual bar conveys both the current item's
+            progress and acts as the "how far through" indicator. */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 2, mr: 2, minWidth: 240, flexShrink: 0 }}>
+          <LinearProgress
+            variant="determinate"
+            value={evaluatedRatio * 100}
+            sx={(theme) => ({
+              flex: 1,
+              height: 6,
+              borderRadius: 3,
+              bgcolor: alpha(
+                theme.palette.text.primary,
+                theme.palette.mode === 'dark' ? 0.18 : 0.08,
+              ),
+              '& .MuiLinearProgress-bar': {
+                bgcolor:
+                  evaluatedRatio === 1
+                    ? theme.palette.mode === 'dark'
+                      ? '#4ED9A0'
+                      : '#05813E'
+                    : 'primary.main',
+                borderRadius: 3,
+              },
+            })}
+          />
+          <Typography
+            sx={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 12,
+              color: 'text.secondary',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {evaluatedCount}/{total} Items Evaluated
+          </Typography>
+        </Box>
+        {/* A/B-testing toggle — keeps version A (the current layout)
+            available alongside an alternate version B so design
+            variations can be compared side-by-side. */}
+        <ToggleButtonGroup
+          exclusive
+          value={version}
+          onChange={(_, v) => v && setVersion(v)}
+          size="small"
+          sx={{
+            ml: 'auto',
+            mr: 2,
+            '& .MuiToggleButton-root': {
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 13,
+              fontWeight: 600,
+              px: 2,
+              py: 0,
+              height: 20,
+              minWidth: 36,
+              borderColor: 'divider',
+              color: 'text.secondary',
+              '&.Mui-selected': {
+                bgcolor: 'primary.main',
+                color: 'primary.contrastText',
+                '&:hover': { bgcolor: 'primary.main', filter: 'brightness(1.1)' },
+              },
+            },
+          }}
+        >
+          <ToggleButton value="A">A</ToggleButton>
+          <ToggleButton value="B">B</ToggleButton>
+        </ToggleButtonGroup>
+        <FormControlLabel
+          control={
+            <Switch
+              checked={showAllComments}
+              onChange={(e) => setShowAllComments(e.target.checked)}
+              size="small"
+            />
+          }
+          label={
+            <Typography sx={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'text.secondary' }}>
+              {t('evaluateItemDialog.showAllComments')}
+            </Typography>
+          }
+          sx={{ mr: 2 }}
+        />
         <FormControlLabel
           control={
             <Switch
@@ -297,7 +493,8 @@ export default function EvaluateItemDialog({
         />
       </Box>
 
-      {/* Body */}
+      {/* Body — original layout, now exposed under Version B. */}
+      {version === 'B' && (
       <Box sx={{ flex: 1, overflowY: 'auto', px: 5, pb: 3 }}>
         {/* Product Card */}
         <Box
@@ -314,16 +511,41 @@ export default function EvaluateItemDialog({
           }}
         >
           <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography
-              sx={{
-                fontFamily: 'Inter, sans-serif',
-                fontSize: 14,
-                color: 'text.secondary',
-                lineHeight: 1.4,
-              }}
-            >
-              {item.itemCode}
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography
+                sx={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 14,
+                  color: 'text.secondary',
+                  lineHeight: 1.4,
+                }}
+              >
+                {item.itemCode}
+              </Typography>
+              {/* Item is "complete" once every supplier bid on it has
+                  been moved off the default Not Evaluated state. The chip
+                  uses the brand primary color to match other "done"
+                  affordances in the app. */}
+              {itemComplete && (
+                <Chip
+                  label="Evaluated"
+                  size="small"
+                  sx={(theme) => ({
+                    // 6% brand-tinted fill keeps the chip subtle while the
+                    // 100% brand-color label still reads as the "this is
+                    // done" signal.
+                    bgcolor: alpha(theme.palette.primary.main, 0.06),
+                    color: 'primary.main',
+                    fontFamily: 'Inter, sans-serif',
+                    fontWeight: 500,
+                    fontSize: 11,
+                    height: 20,
+                    borderRadius: '100px',
+                    '& .MuiChip-label': { px: 1 },
+                  })}
+                />
+              )}
+            </Box>
             <Typography
               sx={{
                 fontFamily: 'Inter, sans-serif',
@@ -338,30 +560,6 @@ export default function EvaluateItemDialog({
             >
               {item.itemName}
             </Typography>
-            <Box
-              component="button"
-              type="button"
-              sx={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 0.75,
-                bgcolor: 'transparent',
-                border: 'none',
-                p: 0,
-                mt: '10px',
-                cursor: 'pointer',
-                color: '#3E7BFA',
-                fontFamily: 'Inter, sans-serif',
-                fontSize: 13,
-                lineHeight: 1.4,
-                '&:hover .underline': { textDecorationColor: '#3E7BFA' },
-              }}
-            >
-              <HugeiconsIcon icon={Comment01Icon} size={14} color="#3E7BFA" />
-              <Box component="span" className="underline" sx={{ textDecoration: 'underline' }}>
-                {t('evaluateItemDialog.showConditions')}
-              </Box>
-            </Box>
           </Box>
 
           <Box sx={{ display: 'grid', gridTemplateColumns: 'auto auto', columnGap: 4, rowGap: 0, flexShrink: 0 }}>
@@ -380,12 +578,12 @@ export default function EvaluateItemDialog({
 
         {/* Suppliers table */}
         <TableContainer>
-          <Table size="small">
+          <Table size="small" sx={{ width: '100%' }}>
             <TableHead>
               <TableRow>
                 {/* Comment column moved to the start of the row so the
                     chat icon sits on the left edge. No header label. */}
-                <TableCell sx={{ borderBottom: '1px solid', borderColor: 'divider', width: 36, px: 1 }} />
+                <TableCell sx={{ borderBottom: '1px solid', borderColor: 'divider', width: 36, px: '10px' }} />
                 {visibleColumns.map((col) => (
                   <TableCell
                     key={col.key}
@@ -398,7 +596,8 @@ export default function EvaluateItemDialog({
                       borderColor: 'divider',
                       verticalAlign: 'bottom',
                       lineHeight: '16px',
-                      px: 1,
+                      px: '10px',
+                      whiteSpace: 'pre-line',
                     }}
                   >
                     <TableSortLabel
@@ -424,19 +623,41 @@ export default function EvaluateItemDialog({
                 // on the SupplierBid is preserved on the type but not used
                 // as the visual default.
                 const status = statusOverrides[i] ?? 'Not Evaluated';
-                const statusStyle = STATUS_COLORS[status];
-                const isActive = bid.hasComment;
+                const statusStyle = statusColors[status];
+                const isExpanded = showAllComments || expandedComments.has(i);
+                const hasCommentText = (comments[i] ?? '').trim().length > 0;
+                // Icon turns blue only when the user has actually saved
+                // comment text — an empty expanded field stays grey.
+                const isActive = hasCommentText;
+                const toggleComment = () =>
+                  setExpandedComments((prev) => {
+                    const next = new Set(prev);
+                    if (next.has(i)) next.delete(i);
+                    else next.add(i);
+                    return next;
+                  });
                 return (
+                  <Fragment key={i}>
                   <TableRow
-                    key={i}
                     sx={{
-                      '&:hover': { bgcolor: 'action.hover' },
-                      ...(isActive && { bgcolor: 'rgba(62,123,250,0.04)' }),
+                      // Blue tint is only used as a rollover; an
+                      // expanded row with no saved comment keeps the
+                      // default cell fill.
+                      '&:hover': { bgcolor: 'rgba(62,123,250,0.04)' },
+                      // Collapse the bottom border when the comment row
+                      // is showing so the two render as one continuous
+                      // visual row.
+                      ...(isExpanded && {
+                        '& > td': { borderBottom: 'none' },
+                      }),
                     }}
                   >
-                    <TableCell sx={{ ...cellSx, width: 36, px: 1 }}>
+                    <TableCell sx={{ ...cellSx, width: 36, px: '10px' }}>
                       <IconButton
                         size="small"
+                        onClick={toggleComment}
+                        aria-label="Toggle comment"
+                        aria-expanded={isExpanded}
                         sx={{
                           color: isActive ? '#3E7BFA' : 'text.secondary',
                           bgcolor: isActive ? 'rgba(62,123,250,0.08)' : 'transparent',
@@ -461,34 +682,31 @@ export default function EvaluateItemDialog({
                         <Checkbox
                           size="small"
                           aria-label={t('evaluateItemDialog.accept')}
-                          checked={status === 'Accept'}
-                          // Decide based on React state, not the DOM's
-                          // checked attribute, so the two checkboxes can
-                          // never end up both checked. Clicking the active
-                          // tick reverts to Not Evaluated; clicking the
-                          // inactive one switches the row to Accept and
-                          // the Disqualify tick re-renders as unchecked
-                          // because `checked={status === 'Disqualify'}` is
-                          // now false.
+                          icon={<RoundedCheckboxIcon />}
+                          checkedIcon={<RoundedCheckboxCheckedIcon />}
+                          checked={status === 'Accept' || status === 'Preferred'}
                           onClick={() =>
                             setStatusOverrides((prev) => ({
                               ...prev,
-                              [i]: status === 'Accept' ? 'Not Evaluated' : 'Accept',
+                              [i]:
+                                status === 'Accept' || status === 'Preferred'
+                                  ? 'Not Evaluated'
+                                  : 'Accept',
                             }))
                           }
                           sx={{
                             p: 0.5,
-                            color: STATUS_COLORS.Accept.color,
+                            color: statusColors.Accept.color,
                             '&.Mui-checked': {
-                              color: STATUS_COLORS.Accept.color,
-                              bgcolor: STATUS_COLORS.Accept.bg,
+                              color: statusColors.Accept.color,
                             },
-                            '& .MuiSvgIcon-root': { fontSize: 20 },
                           }}
                         />
                         <Checkbox
                           size="small"
                           aria-label={t('evaluateItemDialog.reject')}
+                          icon={<RoundedCheckboxIcon />}
+                          checkedIcon={<RoundedCheckboxCheckedIcon />}
                           checked={status === 'Disqualify'}
                           onClick={() =>
                             setStatusOverrides((prev) => ({
@@ -498,12 +716,10 @@ export default function EvaluateItemDialog({
                           }
                           sx={{
                             p: 0.5,
-                            color: STATUS_COLORS.Disqualify.color,
+                            color: statusColors.Disqualify.color,
                             '&.Mui-checked': {
-                              color: STATUS_COLORS.Disqualify.color,
-                              bgcolor: STATUS_COLORS.Disqualify.bg,
+                              color: statusColors.Disqualify.color,
                             },
-                            '& .MuiSvgIcon-root': { fontSize: 20 },
                           }}
                         />
                       </Box>
@@ -540,12 +756,315 @@ export default function EvaluateItemDialog({
                       />
                     </TableCell>
                   </TableRow>
+                  {isExpanded && (
+                    <TableRow>
+                      <TableCell />
+                      <TableCell
+                        colSpan={visibleColumns.length + 2}
+                        sx={{ pt: 0, pb: '12px', px: '10px' }}
+                      >
+                        <InputBase
+                          autoFocus
+                          fullWidth
+                          multiline
+                          minRows={2}
+                          placeholder={t('tenderSource.commentPlaceholder')}
+                          value={comments[i] ?? ''}
+                          onChange={(e) =>
+                            setComments((prev) => ({ ...prev, [i]: e.target.value }))
+                          }
+                          sx={(theme) => ({
+                            bgcolor:
+                              theme.palette.mode === 'dark'
+                                ? alpha(theme.palette.common.white, 0.06)
+                                : alpha(theme.palette.common.black, 0.04),
+                            borderRadius: '8px',
+                            px: 1.5,
+                            py: 1,
+                            fontFamily: 'Inter, sans-serif',
+                            fontSize: 13,
+                            color: 'text.primary',
+                          })}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  </Fragment>
                 );
               })}
             </TableBody>
           </Table>
         </TableContainer>
       </Box>
+      )}
+
+      {/* Body — combo-button variant, now exposed as the default
+          Version A. */}
+      {version === 'A' && (
+        <Box sx={{ flex: 1, overflowY: 'auto', px: 5, pb: 3 }}>
+          {/* Product Card */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              justifyContent: 'space-between',
+              gap: 4,
+              bgcolor: 'action.hover',
+              borderRadius: '12px',
+              px: 3,
+              py: 2.5,
+              mb: 3,
+            }}
+          >
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography
+                  sx={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 14,
+                    color: 'text.secondary',
+                    lineHeight: 1.4,
+                  }}
+                >
+                  {item.itemCode}
+                </Typography>
+                {itemComplete && (
+                  <Chip
+                    label="Evaluated"
+                    size="small"
+                    sx={(theme) => ({
+                      bgcolor: alpha(theme.palette.primary.main, 0.06),
+                      color: 'primary.main',
+                      fontFamily: 'Inter, sans-serif',
+                      fontWeight: 500,
+                      fontSize: 11,
+                      height: 20,
+                      borderRadius: '100px',
+                      '& .MuiChip-label': { px: 1 },
+                    })}
+                  />
+                )}
+              </Box>
+              <Typography
+                sx={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontWeight: 600,
+                  fontSize: 20,
+                  color: 'text.primary',
+                  lineHeight: 1.3,
+                }}
+              >
+                {item.itemName}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'auto auto', columnGap: 4, rowGap: 0, flexShrink: 0 }}>
+              {summaryFields.map((f) => (
+                <Box key={f.label} sx={{ display: 'contents' }}>
+                  <Typography sx={{ fontFamily: 'Inter, sans-serif', fontSize: 13, lineHeight: 1.35, color: 'text.secondary' }}>
+                    {f.label}
+                  </Typography>
+                  <Typography sx={{ fontFamily: 'Inter, sans-serif', fontSize: 13, lineHeight: 1.35, color: 'text.primary', textAlign: 'right' }}>
+                    {f.value}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          </Box>
+
+          {/* Suppliers table — clone of Version A. Iterate this block
+              independently to test variations against A. */}
+          <TableContainer>
+            <Table size="small" sx={{ width: '100%' }}>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ borderBottom: '1px solid', borderColor: 'divider', width: 36, px: '10px' }} />
+                  {visibleColumns.map((col) => (
+                    <TableCell
+                      key={col.key}
+                      sx={{
+                        fontFamily: 'Inter, sans-serif',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: 'text.secondary',
+                        borderBottom: '1px solid',
+                        borderColor: 'divider',
+                        verticalAlign: 'bottom',
+                        lineHeight: '16px',
+                        px: '10px',
+                        whiteSpace: 'pre-line',
+                      }}
+                    >
+                      <TableSortLabel
+                        active={sortKey === col.key}
+                        direction={sortKey === col.key ? sortDir : 'asc'}
+                        onClick={() => toggleSort(col.key)}
+                        sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary', '&.Mui-active': { color: 'text.secondary' } }}
+                      >
+                        {col.label}
+                      </TableSortLabel>
+                    </TableCell>
+                  ))}
+                  <TableCell sx={{ borderBottom: '1px solid', borderColor: 'divider' }} />
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {sortedBids.map((bid, i) => {
+                  const status = statusOverrides[i] ?? 'Not Evaluated';
+                  const statusStyle = statusColors[status];
+                  const isExpanded = showAllComments || expandedComments.has(i);
+                  const hasCommentText = (comments[i] ?? '').trim().length > 0;
+                  const isActive = hasCommentText;
+                  const toggleComment = () =>
+                    setExpandedComments((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(i)) next.delete(i);
+                      else next.add(i);
+                      return next;
+                    });
+                  return (
+                    <Fragment key={i}>
+                      <TableRow
+                        sx={{
+                          '&:hover': { bgcolor: 'rgba(62,123,250,0.04)' },
+                          ...(isExpanded && {
+                            '& > td': { borderBottom: 'none' },
+                          }),
+                        }}
+                      >
+                        <TableCell sx={{ ...cellSx, width: 36, px: '10px' }}>
+                          <IconButton
+                            size="small"
+                            onClick={toggleComment}
+                            aria-label="Toggle comment"
+                            aria-expanded={isExpanded}
+                            sx={{
+                              color: isActive ? '#3E7BFA' : 'text.secondary',
+                              bgcolor: isActive ? 'rgba(62,123,250,0.08)' : 'transparent',
+                              '&:hover': { color: '#3E7BFA', bgcolor: 'rgba(62,123,250,0.08)' },
+                            }}
+                          >
+                            <HugeiconsIcon icon={Comment01Icon} size={14} />
+                          </IconButton>
+                        </TableCell>
+                        {visibleColumns.map((col) => (
+                          <TableCell key={col.key} sx={cellSx}>
+                            {col.render(bid)}
+                          </TableCell>
+                        ))}
+                        <TableCell sx={{ ...cellSx, py: '8px', pr: 0 }}>
+                          {/* Inline combo (segmented) control replaces
+                              the chip+dropdown — each status gets a
+                              dedicated segment so the selection is one
+                              click away. */}
+                          <ToggleButtonGroup
+                            exclusive
+                            value={status}
+                            onChange={(_, v) => {
+                              if (!v) return;
+                              setStatusOverrides((prev) => {
+                                const next = { ...prev, [i]: v as BidStatus };
+                                // Preferred is exclusive across the
+                                // table — promote any other Preferred
+                                // bid to Accept so only this row keeps
+                                // the Preferred status.
+                                if (v === 'Preferred') {
+                                  Object.keys(next).forEach((k) => {
+                                    const idx = Number(k);
+                                    if (idx !== i && next[idx] === 'Preferred') {
+                                      next[idx] = 'Accept';
+                                    }
+                                  });
+                                }
+                                return next;
+                              });
+                            }}
+                            size="small"
+                            sx={{
+                              borderRadius: '6px',
+                              '& .MuiToggleButton-root': {
+                                fontFamily: 'Inter, sans-serif',
+                                fontSize: 11,
+                                fontWeight: 500,
+                                textTransform: 'none',
+                                px: 1.25,
+                                py: 0,
+                                height: 24,
+                                lineHeight: 1.2,
+                                borderColor: 'divider',
+                              },
+                            }}
+                          >
+                            {STATUS_OPTIONS.filter((opt) => opt !== 'Not Evaluated').map((opt) => {
+                              const optStyle = statusColors[opt];
+                              return (
+                                <ToggleButton
+                                  key={opt}
+                                  value={opt}
+                                  // Each segment keeps its status color
+                                  // (matching the dropdown chip palette)
+                                  // whether selected or not — selection
+                                  // is shown via the deeper bg fill.
+                                  sx={{
+                                    color: optStyle.color,
+                                    '&:hover': {
+                                      bgcolor: optStyle.bg,
+                                      color: optStyle.color,
+                                    },
+                                    '&.Mui-selected': {
+                                      bgcolor: optStyle.bg,
+                                      color: optStyle.color,
+                                      '&:hover': { bgcolor: optStyle.bg, filter: 'brightness(0.95)' },
+                                    },
+                                  }}
+                                >
+                                  {opt}
+                                </ToggleButton>
+                              );
+                            })}
+                          </ToggleButtonGroup>
+                        </TableCell>
+                      </TableRow>
+                      {isExpanded && (
+                        <TableRow>
+                          <TableCell />
+                          <TableCell
+                            colSpan={visibleColumns.length + 1}
+                            sx={{ pt: 0, pb: '12px', px: '10px' }}
+                          >
+                            <InputBase
+                              autoFocus
+                              fullWidth
+                              multiline
+                              minRows={2}
+                              placeholder={t('tenderSource.commentPlaceholder')}
+                              value={comments[i] ?? ''}
+                              onChange={(e) =>
+                                setComments((prev) => ({ ...prev, [i]: e.target.value }))
+                              }
+                              sx={(theme) => ({
+                                bgcolor:
+                                  theme.palette.mode === 'dark'
+                                    ? alpha(theme.palette.common.white, 0.06)
+                                    : alpha(theme.palette.common.black, 0.04),
+                                borderRadius: '8px',
+                                px: 1.5,
+                                py: 1,
+                                fontFamily: 'Inter, sans-serif',
+                                fontSize: 13,
+                                color: 'text.primary',
+                              })}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </Fragment>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+      )}
 
       {/* Status dropdown — anchored to whichever Chip the user clicked. */}
       <Menu
@@ -557,7 +1076,7 @@ export default function EvaluateItemDialog({
         slotProps={{ paper: { sx: { borderRadius: '8px', minWidth: 160 } } }}
       >
         {STATUS_OPTIONS.map((opt) => {
-          const optStyle = STATUS_COLORS[opt];
+          const optStyle = statusColors[opt];
           return (
             <MenuItem
               key={opt}
@@ -599,7 +1118,7 @@ export default function EvaluateItemDialog({
           onClick={onPrev}
           disabled={index <= 1}
           aria-label={t('evaluateItemDialog.previous')}
-          sx={navBtnSx(primaryColor)}
+          sx={primaryNavBtnSx}
         >
           <HugeiconsIcon icon={ArrowLeft01Icon} size={18} />
         </IconButton>
@@ -607,23 +1126,25 @@ export default function EvaluateItemDialog({
         <Button
           variant="contained"
           onClick={onNext}
-          sx={{
-            bgcolor: '#3E7BFA',
-            color: '#FFFFFF',
-            fontFamily: 'Inter, sans-serif',
-            fontSize: 14,
-            fontWeight: 600,
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-            borderRadius: '24px',
-            px: 5,
-            py: 1.25,
-            boxShadow: 'none',
-            '&:hover': {
-              bgcolor: '#3E7BFA',
-              boxShadow: '0px 2px 8px rgba(0,0,0,0.15)',
-              filter: 'brightness(1.1)',
-            },
+          sx={(theme) => {
+            const isDark = theme.palette.mode === 'dark';
+            return {
+              bgcolor: alpha(theme.palette.primary.main, isDark ? 0.18 : 0.06),
+              color: 'primary.main',
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 14,
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              borderRadius: '24px',
+              px: 5,
+              py: 1.25,
+              boxShadow: 'none',
+              '&:hover': {
+                bgcolor: alpha(theme.palette.primary.main, isDark ? 0.28 : 0.12),
+                boxShadow: 'none',
+              },
+            };
           }}
         >
           {t('evaluateItemDialog.next')}
@@ -633,7 +1154,7 @@ export default function EvaluateItemDialog({
           onClick={onNext}
           disabled={index >= total}
           aria-label={t('evaluateItemDialog.nextItem')}
-          sx={navBtnSx(primaryColor)}
+          sx={primaryNavBtnSx}
         >
           <HugeiconsIcon icon={ArrowRight01Icon} size={18} />
         </IconButton>
@@ -647,11 +1168,7 @@ const cellSx = {
   fontSize: 13,
   color: 'text.primary',
   py: '14px',
-  // Compress the horizontal gutter (MUI's small-size default is 16px on
-  // each side) so the table doesn't have huge whitespace between the
-  // narrow numeric columns. 8px keeps the columns visually distinct
-  // without making them feel padded.
-  px: 1,
+  whiteSpace: 'nowrap',
 };
 
 const navBtnSx = (primary: string) => ({
@@ -663,3 +1180,26 @@ const navBtnSx = (primary: string) => ({
   '&:hover': { color: primary, bgcolor: 'background.paper', boxShadow: '0px 2px 8px rgba(0,0,0,0.15)' },
   '&.Mui-disabled': { color: 'text.disabled', boxShadow: '0px 0px 2px rgba(40,41,61,0.04)' },
 });
+
+// Brand-tinted variant matching the central "NEXT" CTA — alpha bumps
+// up in dark mode so the chevron sits on a visible brand-tinted halo
+// rather than disappearing into the dark surface.
+const primaryNavBtnSx = (theme: import('@mui/material/styles').Theme) => {
+  const isDark = theme.palette.mode === 'dark';
+  return {
+    width: 40,
+    height: 40,
+    bgcolor: alpha(theme.palette.primary.main, isDark ? 0.18 : 0.06),
+    color: 'primary.main',
+    boxShadow: 'none',
+    '&:hover': {
+      bgcolor: alpha(theme.palette.primary.main, isDark ? 0.28 : 0.12),
+      color: 'primary.main',
+      boxShadow: 'none',
+    },
+    '&.Mui-disabled': {
+      bgcolor: alpha(theme.palette.primary.main, isDark ? 0.08 : 0.04),
+      color: alpha(theme.palette.primary.main, 0.4),
+    },
+  };
+};

@@ -194,7 +194,7 @@
     "estimatedDelivery": "Estimated Delivery",
     "totalCost": "Total Cost",
     "acceptableSuppliers": "Acceptable Suppliers",
-    "supplierSelected": "Supplier Selected",
+    "supplierSelected": "State",
     "notEvaluated": "Not Evaluated",
     "search": "Search...",
     "showAll": "Show All"
@@ -275,6 +275,7 @@
     "title": "Evaluate Item {{index}}/{{total}}",
     "headerItem": "Evaluate Item {{index}}/{{total}}",
     "priceBlind": "Price Blind",
+    "showAllComments": "All Comments",
     "showConditions": "Show Conditions & Comments",
     "supplier": "Supplier",
     "manufacturer": "Manufacturer",
